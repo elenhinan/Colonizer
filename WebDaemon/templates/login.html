@@ -1,0 +1,45 @@
+{% extends "interface.html" %}
+{% block page_content %}
+<div class="card card-default mx-auto" style="width: 20rem;">
+   <div class="card-header">Login</div>
+   <div class="card-body">
+      <form class="form" id="login-form" method="post">
+         <div class="form-group">
+            <label for="username">User</label>
+            <input type="text" class="form-control" id="user" name="username" placeholder="Enter username">
+         </div>
+         <div class="form-group" id="form-pwd" style="display:none;">
+            <label for="password">Password</label>
+            <input type="password" class="form-control" id="pwd" name="password" placeholder="Password">
+         </div>
+         <button type="submit" class="btn btn-primary">Login</button>
+         {% if error %}
+         <div class="alert alert-warning mt-3">
+            <strong>Error!</strong> {{ error }}
+         </div>
+         {% endif %}
+      </form>
+   </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+   $("#user").keydown(function (event) {
+      // slide down password prompt if admin user, and set cursor to password
+      if ($("#user").val() == 'admin') {
+         $("#form-pwd").slideDown();
+         if (event.keyCode == 13) {
+            event.preventDefault();
+            $("#pwd").focus();
+         }
+      }
+      // remove "user:" from barcode reader
+      else if ($("#user").val() == 'user:') {
+         $("#user").val('')
+      }
+   });
+</script>
+{% endblock %}

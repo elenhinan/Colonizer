@@ -1,0 +1,134 @@
+{% extends "interface.html" %}
+
+{% block page_content %}
+
+<div class="col">
+	<div class="col form-group">
+		<div class="input-group">
+			<div class="input-group-prepend">
+				<label class="input-group-text" style="width: 90px;">Batch ID</label>
+			</div>
+			<input type="text" class="form-control" id="batch" autofocus autocomplete="off" placeholder="&lt;batch id&gt;">
+			<div class="input-group-append">
+				<div class="input-group-text"><i class="fa" id="batch_glyph"></i></div>
+			</div>
+		</div>
+	</div>
+	<div class="row mb-3">
+		<img id="image" class="img-responsive" src="/images/live?crop=rect&light=flash"
+			style="height:600px;max-width:100%;object-fit:contain;background:black">
+	</div>
+	<div class="row mb-3">
+		<button id="refresh" type="button" class="btn mr-3 btn-secondary">Refresh</button>
+		<button id="save" type="button" class="btn btn-secondary">Save</button>
+	</div>
+
+	<div class="row alert alert-warning" id="save_wait" style="display: none;">
+		<strong>Please wait!</strong> Saving image
+	</div>
+
+	<div class="row alert alert-danger" id="save_fail" style="display: none;">
+		<strong>Error!</strong> Failed to save image
+	</div>
+
+	<div class="row alert alert-success" id="save_ok" style="display: none;">
+		<strong>Success!</strong> Saved image to disk
+	</div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+
+<script>
+	var new_user = '';
+	var new_batch = '';
+	var text_input = '';
+
+	$("#refresh").click(function () {
+		$("#image").attr("src", $("#image").attr("src")); // refresh image
+	});
+
+	$("#save").click(function () {
+		$("#save_wait").slideDown();
+		$.ajax({
+			type: "POST",
+			contentType: "application/json; charset=utf-8",
+			url: "/save_image",
+			data: JSON.stringify({ user: new_user, batch: new_batch }),
+			success: function (data) {
+				console.log(data);
+				$("#save_wait").slideUp();
+				if (data.saved == true) {
+					$("#save_fail").slideUp();
+					$("#save_ok").html(`<strong>Success!</strong> Image saved to <i>${data.filename}</i>`)
+					$("#save_ok").slideDown();
+				} else {
+					$("#save_ok").slideUp();
+					$("#save_fail").slideDown();
+				}
+				slideup_all();
+			},
+			dataType: "json"
+		});
+	});
+
+	function process_input(data) {
+		if ("user" in data) {
+			new_user = data.user;
+		}
+		if ("batch" in data) {
+			new_batch = data.batch;
+		}
+	}
+
+	function decode_text() {
+		console.log("Request barcode decode: " + text_input);
+		$.ajax({
+			type: "POST",
+			contentType: "application/json; charset=utf-8",
+			url: "/parse",
+			data: JSON.stringify(text_input),
+			success: function (data) {
+				console.log(data);
+				process_input(data);
+			},
+			dataType: "json"
+		});
+	}
+
+	function slideup_all() {
+		setTimeout(function () {
+			$("#save_ok").slideUp();
+			$("#save_fail").slideUp();
+		}, 3000);
+	}
+
+	$(document).ready(function () {
+
+		$(document).keypress(function (event) {
+			var k = event.which || event.keyCode;
+			var c = String.fromCharCode(k);
+			text_input = text_input + c;
+			$("#barcode").val(text_input);
+		});
+
+		$(document).keydown(function (event) {
+			if (event.keyCode == 13) {
+				decode_text();
+				text_input = "";
+			}
+		});
+
+		// prevent submit on enter press
+		$(window).keydown(function (event) {
+			if (event.keyCode == 13) {
+				event.preventDefault();
+				return false;
+			}
+		});
+	});
+</script>
+
+{% endblock %}

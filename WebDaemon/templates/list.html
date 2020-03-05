@@ -1,0 +1,36 @@
+{% extends "interface.html" %}
+
+{% block page_content %}
+<form class="form" method="post">
+	<table class="table table-sm table-striped">
+		<thead>
+			<th scope="col"></th>
+			<th scope="col">Scandate</th>
+			<th class="text-center" scope="col">Barcode</th>
+			<th class="text-center" scope="col">Counts</th>
+			<th class="text-center" scope="col">Username</th>
+			<th class="text-center" scope="col">Batch</th>
+			<th class="text-center" scope="col">Location</th>
+		</thead>
+		<tbody>
+			{% for sp in settleplates %}
+			<tr>
+				<td>
+					<div class="checkbox">
+						<input type="checkbox" name="selected" value="{{ sp.ID }}">
+					</div>
+				</td>
+				<td class="text-monospace" scope="col"><small><a
+							href="settleplate?id={{ sp.ID }}">{{ sp.ScanDate }}</a></small>
+				</td>
+				<td class="text-center text-monospace" scope="col"><small>{{ sp.Barcode }}</small></td>
+				<td class="text-center text-monospace" scope="col"><small>{{ sp.Counts }}</small></td>
+				<td class="text-center text-monospace" scope="col"><small>{{ sp.Username }}</small></td>
+				<td class="text-center text-monospace" scope="col"><small>{{ sp.Batch }}</small></td>
+				<td class="text-center text-monospace" scope="col"><small>{{ sp.Location }}</small></td>
+			</tr>
+			{% endfor %}
+		<tbody>
+	</table>
+</form>
+{% endblock %}

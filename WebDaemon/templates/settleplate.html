@@ -1,0 +1,42 @@
+{% extends "interface.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% block page_content %}
+<form class="form" method="post">
+		{{ form.hidden_tag() }}
+		{{ wtf.form_errors(form, hiddens="only") }}
+		<div class="row">
+			<div class="col">{{ wtf.form_field(form.Username) }}</div>
+			<div class="col">{{ wtf.form_field(form.ScanDate) }}</div>
+		</div>
+		<div class="row">
+			<div class="col">{{ wtf.form_field(form.Barcode) }}</div>
+			<div class="col">{{ wtf.form_field(form.Batch) }}</div>
+		</div>
+		<div class="row">
+			<div class="col">{{ wtf.form_field(form.Location) }}</div>
+			<div class="col">{{ wtf.form_field(form.Counts) }}</div>
+		</div>
+		<div class="row">
+			<input type="submit" value="Update">
+		</div>
+</form>
+<img id="image" class="img-responsive" src="/images/{{settleplate.ID}}.png" style="width:100%;cursor:zoom-in">
+
+<div id="imagemodal" class="modal">
+	<div class="modal-content">
+		<div class="modal-body">
+			<img src="/images/{{settleplate.ID}}.png" data-dismiss="modal" data-target="imagemodal" id="imagezoom" style="width:100%;cursor:zoom-out">
+		</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+	$("#image").click(function() {
+		$('#imagemodal').modal('show');
+	});
+	//$("#Barcode").onchange(platelookup);
+</script>
+{% endblock %}

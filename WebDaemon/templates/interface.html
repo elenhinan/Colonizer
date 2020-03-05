@@ -1,0 +1,26 @@
+{% extends "bootstrap/base.html" %}
+{% block styles %}
+  {{super()}}
+  {{fontawesome_html()}}
+  <link rel="stylesheet" href="{{ url_for('static', filename='input_group_color.css')}}">
+{% endblock %}
+{% block title %} Colonizer {% endblock %}
+
+{% block content %}
+<div class="container" style="width: 1000px; padding: 5px">
+  <div class="card border-dark">
+    <div class="card-header text-white bg-light">
+      {% include "navbar.html" %}
+    </div>
+    <div class="card-body">
+        {% block page_content %}
+        Empty page
+        {% endblock %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{% endblock %}

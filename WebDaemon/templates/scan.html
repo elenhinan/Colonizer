@@ -1,0 +1,242 @@
+{% extends "interface.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% block page_content %}
+<div class="spinner-border" role="status">
+		<span class="sr-only">Loading...</span>
+	 </div>
+<div class="row">
+	<div class="col mx-3">
+		<div class="row mb-3">
+			<div class="input-group">
+				<div class="input-group-prepend">
+					<label class="input-group-text" style="width: 90px;">Serial</label>
+				</div>
+				<input type="text" class="form-control" id="barcode" autofocus autocomplete="off" placeholder="&lt;barcode&gt;">
+				<div class="input-group-append">
+					<button id="clear" type="button" class="btn btn-secondary"><i class="fa fa-backspace"></i></button>
+				</div>
+			</div>
+		</div>
+		<div class="row mb-3">
+			<div class="input-group">
+				<div class="input-group-prepend">
+					<label class="input-group-text" style="width: 90px;">Batch#</label>
+				</div>
+				<input type="text" class="form-control" id="batch" readonly placeholder="">
+			</div>
+		</div>
+		<div class="row mb-3">
+			<div class="input-group">
+				<div class="input-group-prepend">
+					<label class="input-group-text" style="width: 90px;">Location</label>
+				</div>
+				<input type="text" class="form-control" id="location" readonly placeholder="">
+			</div>
+		</div>
+		<div class="row">
+			<table class="table table-sm table-striped">
+				<thead>
+					<tr>
+						<th scope="col">ID</th>
+						<th scope="col">&Delta;T (Hours)</th>
+						<th scope="col">Counts</th>
+					</tr>
+				</thead>
+				<tbody id="table_timepoints">
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<div class="col mx-3">
+		<div class="row mb-3">
+			<div style="width:100%;height:0; padding-top:100%;position:relative;">
+				<img id="image" class="img-responsive" src="/static/settleplate.svg"
+					style="position:absolute; top:0; left:0; width:100%;cursor:zoom-in">
+			</div>
+		</div>
+		<div class="row">
+			<div class="input-group">
+				<div class="input-group-prepend">
+					<label class="input-group-text" style="width: 90px;">Counts</label>
+				</div>
+				<input type="number" min=0 step=1 class="form-control" id="counts" placeholder="&lt;# of colonies&gt;">
+				<div class="input-group-append">
+					<button id="refresh" type="button" class="btn btn-secondary"><i class="fa fa-camera"></i></button>
+					<button id="commit" type="button" class="btn btn-secondary"><i class="fa fa-save"></i></button>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="row alert alert-warning" id="commit_wait" style="display: none;">
+				<strong>Please wait!</strong> Committing image to DB
+			</div>
+
+			<div class="row alert alert-danger" id="commit_fail" style="display: none;">
+				<strong>Error!</strong> Failed to commit image to DB
+			</div>
+
+			<div class="row alert alert-success" id="commit_ok" style="display: none;">
+				<strong>Success!</strong> Image committed to DB
+			</div>
+		</div>
+	</div>
+</div>
+<div id="imagemodal" class="modal">
+	<div class="modal-content">
+		<div class="modal-body">
+			<img src="/images/live?norefresh" data-dismiss="modal" data-target="imagemodal" id="imagezoom"
+				style="width:100%;cursor:zoom-out">
+		</div>
+	</div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+	// initialize on load
+	$(document).ready(init_page);
+	$("#clear").click(init_page);
+
+	// zoom in on image on click
+	$("#image").click(function () {
+		$('#imagemodal').modal('show');
+	});
+
+	// refresh image on button click
+	$("#refresh").click(function () {
+		$("#image").attr("src", "/images/live?crop=ring&light=ring");
+		$("#counts").focus();
+		$("#counts").attr("readonly", false);
+	});
+
+	//$("#image").load(function () {
+	//});
+
+	$("#counts").change(function () {
+		$("#refresh").attr("disabled", true);
+		$("#commit").attr("disabled", false);
+		$("#commit").focus();
+	});
+
+	// commit image to db on click
+	$("#commit").click(function () {
+		$("#commit").attr("disabled", true);
+		$("#counts").attr('readonly', true);
+		$("#commit").blur();
+		$("#commit_wait").slideDown();
+		$.ajax({
+			type: "POST",
+			contentType: "application/json; charset=utf-8",
+			url: "/scan_add",
+			data: JSON.stringify({ barcode: $("#barcode").val(), counts: $("#counts").val() }),
+			success: function (data) {
+				console.log(data);
+				$("#commit_wait").slideUp();
+				if (data.committed == true) {
+					$("#commit_fail").slideUp();
+					$("#commit_ok").html(`<strong>Success!</strong> Image commitd to DB`)
+					$("#commit_ok").slideDown();
+					table_append(data.ID, data.dT, data.Counts);
+					setTimeout(init_page, 3000);
+				} else {
+					$("#commit_ok").slideUp();
+					$("#commit_fail").slideDown();
+				}
+				slideup_all();
+			},
+			dataType: "json"
+		});
+		
+	});
+
+	function slideup_all() {
+		setTimeout(function () {
+			$("#commit_ok").slideUp();
+			$("#commit_fail").slideUp();
+		}, 3000);
+	}
+
+	// script for capturing barcode reader input on screen
+	// prevent submit on enter press
+	$("#barcode").change(function (event) {
+		$("#barcode").attr('readonly', true);
+		decode_text($("#barcode").val());
+	});
+
+	function decode_text(text_input) {
+		console.log("Request barcode decode: " + text_input);
+		$.ajax({
+			type: "POST",
+			contentType: "application/json; charset=utf-8",
+			url: "/parse",
+			data: JSON.stringify(text_input),
+			success: function (data) {
+				console.log(data);
+				if ("serial" in data) {
+					$("#barcode").val(data.serial)
+					$("#image").attr("src", "/static/settleplate.svg") // reset image on new serial
+					plate_info();
+				}
+			},
+			dataType: "json"
+		});
+	}
+
+	function plate_info() {
+		$.ajax({
+			type: "POST",
+			contentType: "application/json; charset=utf-8",
+			url: "/db/plate_info",
+			data: JSON.stringify({ 'barcode': $("#barcode").val() }),
+			success: function (data) {
+				console.log(data);
+				if ("error" in data) {
+					$("#barcode").val("") // reset value in barcode and set focus
+					alert(data.error);
+					init_page();
+				} else {
+					$("#refresh").attr("disabled", false);
+					$("#refresh").focus();
+					$("#batch").val(data.Batch);
+					$("#location").val(data.Location);
+					$("#table_timepoints").empty();
+					for (var i = 0; i < data.Timepoints.length; i++) {
+						table_append(data.Timepoints[i].ID, data.Timepoints[i].dT, data.Timepoints[i].Counts);
+					}
+
+				}
+			},
+			dataType: "json"
+		});
+	}
+
+	function table_append(ID, dT, Counts) {
+		$("#table_timepoints").append(`
+			<tr>
+				<td><a href="settleplate?id=${ID}">${ID}</a></td>
+				<td>${dT}</td>
+				<td>${Counts}</td>
+			</tr>
+		`);
+	}
+
+	function init_page() {
+		$("#counts").val("");
+		$("#counts").attr('readonly', true);
+		$("#barcode").val("");
+		$("#barcode").attr('readonly', false);
+		$("#batch").val("");
+		$("#location").val("");
+		$("#table_timepoints").empty();
+		$("#image").attr("src", "/static/settleplate.svg");
+		$("#barcode").focus();
+		$("#refresh").attr("disabled", true);
+		$("#commit").attr("disabled", true);
+		slideup_all();
+	}
+
+</script>
+
+{% endblock %}
