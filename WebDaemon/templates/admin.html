@@ -1,67 +1,6 @@
-{% extends "bootstrap/base.html" %}
-{% import "bootstrap/wtf.html" as wtf %}
-{% block title %} Settings {% endblock %}
+{% extends "interface.html" %}
 
-{% block navbar %}
-<div class="navbar navbar-fixed-top">
-  <!-- ... -->
-</div>
-{% endblock %}
+{% block page_content %}
 
-{% block content %}
-<div class="container" style="width: 800px;">
-  <div class="card border-dark">
-    <div class="card-header text-white bg-light">
-      {% include "navbar.html" %}
-    </div>
-    <div class="card-body">
-      <form class="form" method="post">
-          {{ form.hidden_tag() }}
-          {{ wtf.form_errors(form, hiddens="only") }}
-          <div class="row">
-            <div class="col">{{ wtf.form_field(form.Username) }}</div>
-            <div class="col">{{ wtf.form_field(form.ScanDate) }}</div>
-          </div>
-          <div class="row">
-            <div class="col">{{ wtf.form_field(form.Barcode) }}</div>
-            <div class="col">{{ wtf.form_field(form.Batch) }}</div>
-          </div>
-          <div class="row">
-            <div class="col">{{ wtf.form_field(form.Location) }}</div>
-            <div class="col">{{ wtf.form_field(form.Counts) }}</div>
-          </div>
-      </form>
-      <img src="/images/{{settleplate.ID}}.png" class="img-responsive">
-    </div>
-  </div>
-</div>
-<script type="text/javascript" src="{{ url_for('static', filename = 'jquery-3.3.1.min.js') }}"></script>
-
-<script>
-  $(document).ready(function() {
-    console.log("test")
-    $("#barcode").keyup(function(event) {
-      if(event.keyCode == 13) {
-        $.ajax({
-          type: "POST",
-          contentType: "application/json; charset=utf-8",
-          url: "/parse",
-          data: JSON.stringify($('#barcode').val()),
-            success: function (data) {
-              console.log(data)
-            },
-          dataType: "json"
-        });
-      }
-    });
-    // prevent submit on enter press
-    $(window).keydown(function(event){
-     if(event.keyCode == 13) {
-       event.preventDefault();
-       return false;
-     }
-    });
-  })
-</script>
 
 {% endblock %}

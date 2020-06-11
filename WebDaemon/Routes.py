@@ -6,7 +6,7 @@ from WebDaemon import app, db, ueye, leds
 from flask import render_template, request, jsonify, redirect, make_response, Response, session, url_for, g
 from WebDaemon.Settleplate import Settleplate, SettleplateForm
 from WebDaemon.BarcodeParser import Decoder
-from WebDaemon.ImageTools import autocrop_rect, autocrop_ring, to_png, to_jpg
+from WebDaemon.ImageTools import *
 from WebDaemon.Settings import Settings, user_validator
 #from WebDaemon.CeleryTasks import add_scan_async
 
@@ -15,17 +15,18 @@ def index():
 	return redirect(request.base_url + "list")
 
 @app.before_request
-def login_check():
+def login_check(admin=False):
 	session.permanent = True
 	session.modified = True
 
-	if request.path.startswith('/static/'):
+	if request.path.startswith(('/static/','/bootstrap/static/')):
 		return
 
 	if session.get('user') is None and request.endpoint not in ['login', 'logout']:
 		return redirect(url_for('login'))
 
 	g.username = session.get("user")
+	g.isAdmin = (g.username == 'admin')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -98,12 +99,14 @@ def show_settleplate():
 
 @app.route('/images/live', methods=['GET'])
 def capture():
-	if 'norefresh' in request.args:
-		image = session['image']
-	else:
+	if 'norefresh' not in request.args:
 		# get parameters
 		crop = request.args.get('crop')
 		light = request.args.get('light')
+		hdr = request.args.get('hdr')
+		exp = request.args.get('exp')
+		if exp != None:
+			exp = float(exp)
 		
 		# turn on leds and capture image
 		leds_ring = (light == 'ring' or light == 'both')
@@ -111,7 +114,11 @@ def capture():
 		
 		leds.Flash(leds_flash)
 		leds.Ring(leds_ring)
-		image = ueye.capture()
+		if hdr == None:
+			image = ueye.capture(exp)
+		else:
+			image, retval = autocrop_rect_hdr(ueye.capture_hdr())
+			#image = hdr_process(ueye.capture_hdr())
 		leds.Flash(False)
 		leds.Ring(False)
 
@@ -125,10 +132,12 @@ def capture():
 			image = image_cropped
 
 		session['image'] = image
+		session['image_jpeg'] = to_jpg(image)
 		session['image_timestamp'] = datetime.now()
 
-	image_jpeg = to_jpg(image)
-	resp = make_response(image_jpeg)
+	# todo: check for valid image_jpeg
+
+	resp = make_response(session['image_jpeg'])
 	resp.headers.set('Content-Type', 'image/jpeg')
 	resp.headers.set('Content-Disposition', 'attachment', capture='.jpg')
 	resp.headers.set("Cache-Control", "no-cache, no-store, must-revalidate, public, max-age=0")
@@ -139,26 +148,36 @@ def capture():
 
 @app.route('/save_image', methods=['POST'])
 def save_image():
-	ext = '.png'
-	path = '/mnt/petra/Data/Colonizer'
-	filename = session['image_timestamp'].strftime('%Y%m%d_%H%M%S') + '.png'
-	
-	filepath = os.path.join(path, filename)
 	try:
+		data = request.get_json()
+		path = '/mnt/petra/Data/Colonizer'
+		params = {
+			'user' : session.get("user"),
+			'timestamp' : session['image_timestamp'].strftime('%Y%m%d_%H%M%S'),
+			'ext' : 'jpg',
+			'batch_id' : data['batch']
+		}
+		filename = '{user}-{timestamp}-{batch_id}.{ext}'.format(**params)
+		filepath = os.path.join(path, filename)
 		with open(filepath,'wb') as f:
-			img_png = to_png(session['image'])
-			f.write(img_png)
-	except:
-		app.logger.error('Failed to write image')
-		return jsonify({'saved':False})
+			if params['ext'] == 'png':
+				img_out = to_png(session['image'])
+			elif params['ext'] == 'jpg':
+				img_out = to_jpg(session['image'])
+			app.logger.info('Saving image to: %s (%d kB)'%(filename,len(img_out)/1024))
+			f.write(img_out)
+	except Exception as error:
+		app.logger.error('Failed to write image: %s'%error)
+		return jsonify({'saved':False, 'error':str(error)})
 	else:
 		return jsonify({'saved':True, 'filename':filename})
 
-@app.route('/images/<int:image_id>.png', methods=['GET'])
+@app.route('/images/<int:image_id>', methods=['GET'])
 def get_image(image_id):
 	image_binary = Settleplate.query.get(int(image_id)).Image
 	if image_binary is None:
-		return Response(status = 200)
+		#return Response(status = 200)
+		return redirect("/static/settleplate.svg")
 	else:
 		img = make_response(image_binary)
 		img.headers.set('Content-Type', 'image/png')
@@ -168,11 +187,11 @@ def get_image(image_id):
 @app.route('/list', methods=['GET', 'POST'])
 def list_settleplates():
 	# if get
-	if request.method == 'POST':
+	if request.method == 'POST' and g.isAdmin:
 		selected = request.form.getlist("selected")
-		for study_id in selected:
-			study = Study.query.get(int(study_id))
-			db.session.delete(study)
+		for settleplate_id in selected:
+			settleplate = Settleplate.query.get(int(settleplate_id))
+			db.session.delete(settleplate)
 		db.session.commit()
 	lastweek = datetime.today() - timedelta(days=7)
 	settleplates = Settleplate.query.filter(Settleplate.ScanDate >= lastweek).order_by(Settleplate.ScanDate.desc()).all()
@@ -306,3 +325,7 @@ def commit_new():
 		db.session.commit()
 
 	return jsonify({'commited':True})
+
+@app.route('/settings', methods=['get'])
+def settings():
+	return render_template('admin.html')

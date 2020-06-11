@@ -6,7 +6,6 @@ from wtforms import StringField, DateTimeField, DateField, FloatField, IntegerFi
 
 # using sqlacodegen db_uri
 
-
 class Settleplate(db.Model):
 	__tablename__ = 'SETTLEPLATE'
 	ID = db.Column(db.Integer, primary_key=True)
@@ -26,13 +25,12 @@ class Settleplate(db.Model):
 
 	def __init__(self, **kwargs):
 			super(Settleplate, self,).__init__(**kwargs)
-			self.ScanDate = datetime.utcnow()
+			self.ScanDate = datetime.now()
 			self.Exported = False
 			self.Version = 'WebApp 1.0'
 
 	def __repr__(self):
 		return '<Settleplate %r>' % self.ID
-
 
 class SettleplateForm(FlaskForm):
 	Username = StringField('Name', [validators.Required("Please enter study name")])

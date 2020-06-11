@@ -1,0 +1,21 @@
+{% macro inlineinput(label, id, type) %}
+<div class="row mb-3">
+   <div class="input-group">
+      <div class="input-group-prepend">
+         <label class="input-group-text" style="width: 90px;">{{ label }}</label>
+      </div>
+      <input type="{{ type }}" class="form-control" id="{{ id }}">
+   </div>
+</div>
+{% endmacro %}
+
+{% macro inlineinput_ro(input, name) %}
+<div class="row mb-3">
+   <div class="input-group">
+      <div class="input-group-prepend">
+         <label class="input-group-text" style="width: 90px;">Location</label>
+      </div>
+      <input type="text" class="form-control" id="location" readonly placeholder="">
+   </div>
+</div>
+{% endmacro %}

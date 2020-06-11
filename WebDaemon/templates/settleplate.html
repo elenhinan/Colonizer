@@ -20,12 +20,12 @@
 			<input type="submit" value="Update">
 		</div>
 </form>
-<img id="image" class="img-responsive" src="/images/{{settleplate.ID}}.png" style="width:100%;cursor:zoom-in">
+<img id="image" class="img-responsive" src="/images/{{settleplate.ID}}" style="width:100%;cursor:zoom-in">
 
 <div id="imagemodal" class="modal">
 	<div class="modal-content">
 		<div class="modal-body">
-			<img src="/images/{{settleplate.ID}}.png" data-dismiss="modal" data-target="imagemodal" id="imagezoom" style="width:100%;cursor:zoom-out">
+			<img src="/images/{{settleplate.ID}}" data-dismiss="modal" data-target="imagemodal" id="imagezoom" style="width:100%;cursor:zoom-out">
 		</div>
 	</div>
 </div>
@@ -37,6 +37,5 @@
 	$("#image").click(function() {
 		$('#imagemodal').modal('show');
 	});
-	//$("#Barcode").onchange(platelookup);
 </script>
 {% endblock %}

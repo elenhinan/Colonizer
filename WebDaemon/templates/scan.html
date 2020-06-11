@@ -50,7 +50,7 @@
 	<div class="col mx-3">
 		<div class="row mb-3">
 			<div style="width:100%;height:0; padding-top:100%;position:relative;">
-				<img id="image" class="img-responsive" src="/static/settleplate.svg"
+				<img id="image" class="img-responsive" src=""
 					style="position:absolute; top:0; left:0; width:100%;cursor:zoom-in">
 			</div>
 		</div>
@@ -84,7 +84,7 @@
 <div id="imagemodal" class="modal">
 	<div class="modal-content">
 		<div class="modal-body">
-			<img src="/images/live?norefresh" data-dismiss="modal" data-target="imagemodal" id="imagezoom"
+			<img src="" data-dismiss="modal" data-target="imagemodal" id="imagezoom"
 				style="width:100%;cursor:zoom-out">
 		</div>
 	</div>
@@ -96,17 +96,28 @@
 {{ super() }}
 <script>
 	// initialize on load
+	const image_placeholder = "/static/settleplate.svg"
+	const image_norefresh = "/images/live?norefresh"
+	const image_capture = "/images/live?crop=ring&light=ring"
 	$(document).ready(init_page);
 	$("#clear").click(init_page);
 
 	// zoom in on image on click
 	$("#image").click(function () {
-		$('#imagemodal').modal('show');
+		if ($(this).attr("src") == image_capture) {
+			$("#imagemodal").modal('show');
+		}
 	});
+	// when new image loaded, update imagezoom
+	$("#image").on('load', function() {
+		if ($(this).attr("src") == image_capture) {
+			$("#imagezoom").attr("src", image_norefresh);
+		}
+	})
 
 	// refresh image on button click
 	$("#refresh").click(function () {
-		$("#image").attr("src", "/images/live?crop=ring&light=ring");
+		$("#image").attr("src", image_capture);
 		$("#counts").focus();
 		$("#counts").attr("readonly", false);
 	});
@@ -215,7 +226,7 @@
 	function table_append(ID, dT, Counts) {
 		$("#table_timepoints").append(`
 			<tr>
-				<td><a href="settleplate?id=${ID}">${ID}</a></td>
+				<td><a href="settleplate?id=${ID}" target="_blank">${ID}</a></td>
 				<td>${dT}</td>
 				<td>${Counts}</td>
 			</tr>
@@ -230,7 +241,8 @@
 		$("#batch").val("");
 		$("#location").val("");
 		$("#table_timepoints").empty();
-		$("#image").attr("src", "/static/settleplate.svg");
+		$("#image").attr("src", image_placeholder);
+		$("#imagezoom").attr("src", image_placeholder);
 		$("#barcode").focus();
 		$("#refresh").attr("disabled", true);
 		$("#commit").attr("disabled", true);

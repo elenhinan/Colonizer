@@ -1,0 +1,17 @@
+.idea
+__pycache__
+OpenCFU
+dependencies
+test
+zxing
+settleplate.ini
+*.ipynb
+.vscode/settings.json
+update.sh
+connect.sh
+documentation/uEye_SDK_manual_enu.pdf
+documentation/uEye_User_Manual.pdf
+rpi/dhcpd.conf
+rpi/wlan_setup
+rpi/uEyeSDK-4.90.00-ARM_LINUX_IDS_GNUEABI_HF.tgz
+rpi/ws281x.diff

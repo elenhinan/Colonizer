@@ -4,7 +4,9 @@
 <form class="form" method="post">
 	<table class="table table-sm table-striped">
 		<thead>
-			<th scope="col"></th>
+			{% if g.isAdmin %}
+			<th scope="col"><i class="fa fa-trash"></i></th>
+			{% endif %}
 			<th scope="col">Scandate</th>
 			<th class="text-center" scope="col">Barcode</th>
 			<th class="text-center" scope="col">Counts</th>
@@ -15,16 +17,18 @@
 		<tbody>
 			{% for sp in settleplates %}
 			<tr>
+				{% if g.isAdmin %}
 				<td>
 					<div class="checkbox">
 						<input type="checkbox" name="selected" value="{{ sp.ID }}">
 					</div>
 				</td>
+				{% endif %}
 				<td class="text-monospace" scope="col"><small><a
-							href="settleplate?id={{ sp.ID }}">{{ sp.ScanDate }}</a></small>
+						href="settleplate?id={{ sp.ID }}">{{ sp.ScanDate.strftime("%Y-%m-%d %H:%M:%S") }}</a></small>
 				</td>
 				<td class="text-center text-monospace" scope="col"><small>{{ sp.Barcode }}</small></td>
-				<td class="text-center text-monospace" scope="col"><small>{{ sp.Counts }}</small></td>
+				<td class="text-center text-monospace" scope="col"><small>{{ sp.Counts if (sp.Counts >= 0) else 'reg' }}</small></td>
 				<td class="text-center text-monospace" scope="col"><small>{{ sp.Username }}</small></td>
 				<td class="text-center text-monospace" scope="col"><small>{{ sp.Batch }}</small></td>
 				<td class="text-center text-monospace" scope="col"><small>{{ sp.Location }}</small></td>
@@ -32,5 +36,8 @@
 			{% endfor %}
 		<tbody>
 	</table>
+	{% if g.isAdmin %}
+	<button type="submit" class="btn btn-primary">Delete selected</button>
+	{% endif %}
 </form>
 {% endblock %}

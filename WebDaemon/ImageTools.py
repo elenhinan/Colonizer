@@ -32,15 +32,15 @@ def prep_img(image, factor=1.0):
 	blurred = cv2.GaussianBlur(resized, ksize=(9,9), sigmaX=0)
 	return blurred
 
-def crop_rect(image, rect, factor=1.0):
+def crop_rect(image, rect):
 	# get new and old coordinates
 	height, width, *_ = image.shape
-	new_height, new_width = np.float32(rect[1]) * factor
+	new_height, new_width = np.float32(rect[1])
 	
 	# generate src and dst triangle
 	dst = np.float32([[new_width,0], [0,0], [0,new_height]])
 	box = cv2.boxPoints(rect)
-	src = np.flip(np.float32(box[0:3]),1) * factor
+	src = np.flip(np.float32(box[0:3]),1)
 	
 	# do transform
 	m_crop = cv2.getAffineTransform(src, dst)
@@ -49,17 +49,20 @@ def crop_rect(image, rect, factor=1.0):
 	return img_crop
 
 def to_jpg(image):
-	ret, image_encoded = cv2.imencode('.jpg', image)
+	params = list()
+	params.append(cv2.IMWRITE_JPEG_QUALITY)
+	params.append(90) # compression level
+	ret, image_encoded = cv2.imencode('.jpg', image, params)
 	return image_encoded.tobytes()
 
 def to_png(image):
 	params = list()
 	params.append(cv2.IMWRITE_PNG_COMPRESSION)
-	params.append(9) # max compression
+	params.append(9) # compression level
 	ret, image_encoded = cv2.imencode('.png', image, params)
 	return image_encoded.tobytes()
 
-def autocrop_rect(img_org):
+def find_rect(img_org):
 	# reduce image size for speed
 	factor = 4
 
@@ -77,17 +80,36 @@ def autocrop_rect(img_org):
 
 	# if too few edges found, return None
 	if len(edges[0]) < 100:
-		return img_org, False
+		return False
 	
 	# crop onto found edges
-	rect = cv2.minAreaRect(np.transpose(edges))
-	img_crop = crop_rect(img_org, rect, factor)
+	(cx,cy),(sx,sy),r = cv2.minAreaRect(np.transpose(edges)) # center, size and rotation
+	rect = ((cx*factor,cy*factor),(sx*factor,sy*factor),r) # scale center and size
+	return rect
 
-	img_landscape = auto_landscape(img_crop)
-	img_leveled = auto_level(img_landscape)
+def autocrop_rect(img_org):
+	rect = find_rect(img_org)
+	if rect == False:
+		return img_org, False
+	else:
+		img_crop = crop_rect(img_org, rect)
+		img_landscape = auto_landscape(img_crop)
+		img_leveled = auto_level(img_landscape)
+		return img_leveled, True
 
-	return img_leveled, True
+def autocrop_rect_hdr(hdr_series):
+	max_exp = max(hdr_series)
+	rect = find_rect(hdr_series[max_exp])
+	if rect == False:
+		return hdr_series[max_exp], False
+	else:
+		hdr_crop = {}
+		for exp in hdr_series.keys():
+			hdr_crop[exp] = crop_rect(hdr_series[exp], rect)
 
+		img_out = hdr_process(hdr_crop)
+		img_landscape = auto_landscape(img_out)
+		return img_landscape, True
 
 def autocrop_ring(img_org):
 	# reduce image size for speed
@@ -95,6 +117,8 @@ def autocrop_ring(img_org):
 
 	# use gray only
 	img_gray = cv2.cvtColor(img_org, cv2.COLOR_RGB2GRAY)
+	#if img_gray.dtype == np.uint16:
+	#	img_gray = (img_gray/256).astype('uint8')
 
 	# resize and blur
 	img_prep = prep_img(img_gray, factor)
@@ -148,3 +172,22 @@ def auto_landscape(img):
 		return cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
 	else:
 		return img
+
+def hdr_process(hdr_series):
+	# mask images
+	exp = np.array([1./e for e in hdr_series.keys()], dtype=np.float32)
+	img = list(hdr_series.values())
+	
+	# Merge exposures to HDR image
+	merge_mertens = cv2.createMergeMertens()
+	hdr_img = merge_mertens.process(img)
+
+	# Tonemap HDR image
+	#tonemap1 = cv2.createTonemap(gamma=2.2)
+	#img_tonemap = tonemap1.process(hdr_img)
+
+	img_out = np.clip(hdr_img*255, 0, 255).astype('uint8')
+
+	return img_out
+	
+	
