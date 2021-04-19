@@ -2,7 +2,7 @@
 {% block styles %}
   {{super()}}
   {{fontawesome_html()}}
-  <link rel="stylesheet" href="{{ url_for('static', filename='input_group_color.css')}}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='local.css')}}">
 {% endblock %}
 {% block title %} Colonizer {% endblock %}
 
@@ -16,6 +16,15 @@
         {% block page_content %}
         Empty page
         {% endblock %}
+    </div>
+  </div>
+  <div id="loading" class="modal fade" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-hidden="true" style="padding-top:15%; overflow-y:visible;">
+		<div class="modal-dialog modal-sm">
+      <div class="modal-content">
+			  <div class="modal-body text-center">
+          <img src="/static/ajax-loader.gif" alt="" />Loading!
+        </div>
+			</div>
     </div>
   </div>
 </div>

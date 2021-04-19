@@ -1,18 +1,14 @@
 #from app import app
 import io
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from WebDaemon import app, db, ueye, leds
 from flask import render_template, request, jsonify, redirect, make_response, Response, session, url_for, g
 from WebDaemon.Settleplate import Settleplate, SettleplateForm
 from WebDaemon.BarcodeParser import Decoder
 from WebDaemon.ImageTools import *
-from WebDaemon.Settings import Settings, user_validator
+from WebDaemon.Settings import settings, user_validator, SettingsForm
 #from WebDaemon.CeleryTasks import add_scan_async
-
-@app.route('/')
-def index():
-	return redirect(request.base_url + "list")
 
 @app.before_request
 def login_check(admin=False):
@@ -27,6 +23,11 @@ def login_check(admin=False):
 
 	g.username = session.get("user")
 	g.isAdmin = (g.username == 'admin')
+	#g.testserver = settings.getboolean('general','testserver')
+
+@app.route('/')
+def index():
+	return redirect(request.base_url + "list")
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -74,28 +75,29 @@ def scan_settleplate():
 def show_settleplate():
 	sp_id = request.args.get('id')
 
-	# check if existing study requested
-	if (sp_id == "new") or (sp_id is None):
-		sp = Settleplate()
-	else:
-		sp = Settleplate.query.get(int(sp_id))
-	# fetch if in DB
+	#try to fetch settleplate
+	sp = Settleplate.query.get(int(sp_id))
+	if sp is None:
+		return "Not found"
+
+	# do user have access to change/delete this?
+	# must either be admin, or creator withing 30 minutes
+	age = (datetime.now()-sp.ScanDate).total_seconds() / 60
+	readonly = not (g.isAdmin or (sp.Username == g.username and age < 30))
 
 	# create form
 	form = SettleplateForm(obj=sp)
 
 	# validate form if POST
-	if form.validate_on_submit():
+	if form.validate_on_submit() and not readonly:
 	   form.populate_obj(sp)
 	   db.session.add(sp)
 	   db.session.commit()
 	   new_url = request.base_url + "?id=%d"%sp.ID
 	   return redirect(new_url)
 
-	if sp is not None:
-		return render_template('settleplate.html', settleplate=sp, form=form)
-	else:
-		return "Not found"
+	return render_template('settleplate.html', settleplate=sp, form=form, readonly=readonly)
+		
 
 @app.route('/images/live', methods=['GET'])
 def capture():
@@ -105,6 +107,8 @@ def capture():
 		light = request.args.get('light')
 		hdr = request.args.get('hdr')
 		exp = request.args.get('exp')
+		debug = request.args.get('debug') != None
+
 		if exp != None:
 			exp = float(exp)
 		
@@ -128,6 +132,8 @@ def capture():
 			image_cropped, retval = autocrop_ring(image)
 		elif crop == 'rect':
 			image_cropped, retval = autocrop_rect(image)
+		elif retval == False and debug:
+			image = draw_mask(image)
 		if retval == True:
 			image = image_cropped
 
@@ -140,7 +146,7 @@ def capture():
 	resp = make_response(session['image_jpeg'])
 	resp.headers.set('Content-Type', 'image/jpeg')
 	resp.headers.set('Content-Disposition', 'attachment', capture='.jpg')
-	resp.headers.set("Cache-Control", "no-cache, no-store, must-revalidate, public, max-age=0")
+	resp.headers.set("Cache-Control", "no-store")
 	resp.headers.set("Expires", '0')
 	resp.headers.set("Pragma", "no-cache")
 	return resp
@@ -193,9 +199,38 @@ def list_settleplates():
 			settleplate = Settleplate.query.get(int(settleplate_id))
 			db.session.delete(settleplate)
 		db.session.commit()
-	lastweek = datetime.today() - timedelta(days=7)
-	settleplates = Settleplate.query.filter(Settleplate.ScanDate >= lastweek).order_by(Settleplate.ScanDate.desc()).all()
-	return render_template('list.html', settleplates=settleplates)
+
+	# define search from request data
+	date_from = request.args.get('from', (date.today() - timedelta(days=7)).isoformat(), str)
+	date_to = request.args.get('to', (date.today()).isoformat(), str)
+	batch = request.args.get('batch', "", str)
+	#batch.replace('_','__') # escape wildcard
+
+	#define query
+	query = Settleplate.query
+	# filter date
+	try:
+		# update to python > 3.7
+		#a = date.fromisoformat(date_from)
+		#b = date.fromisoformat(date_to)
+		# fix for python 3.5
+		a = date(*map(int, date_from.split('-')))
+		b = date(*map(int, date_to.split('-')))
+		query = query.filter(
+			Settleplate.ScanDate >= datetime(a.year, a.month, a.day),
+			Settleplate.ScanDate <= datetime(b.year, b.month, b.day, 23, 59, 59)
+		)
+
+	except:
+		query = query.filter(
+			Settleplate.ScanDate >= datetime.today() - timedelta(days=7)
+		)
+	# filter by batch
+	if batch != "":
+		query = query.filter(Settleplate.Batch.contains(batch))
+	# return	results
+	settleplates = query.order_by(Settleplate.ScanDate.desc()).all()
+	return render_template('list.html', settleplates=settleplates, date_from=date_from, date_to=date_to, batch=batch)
 
 @app.route('/camera', methods=['get'])
 def camera():
@@ -220,7 +255,8 @@ def get_batch_date():
 	data = request.get_json()
 	batch_id = data['batch']
 	if len(batch_id):
-		results = db.session.query(Settleplate.ScanDate, Settleplate.Lot_no, Settleplate.Location).filter(Settleplate.Batch.like(batch_id)).order_by(Settleplate.ScanDate.desc()).all()
+		limit=25
+		results = db.session.query(Settleplate.ScanDate, Settleplate.Barcode, Settleplate.Location).filter(Settleplate.Batch.like(batch_id), Settleplate.Exported==False).order_by(Settleplate.ScanDate.desc()).limit(limit).all()
 		if len(results):
 			response = [r._asdict() for r in results]
 			return jsonify(response)
@@ -244,7 +280,8 @@ def plate_info():
 	# query for scans
 	query = db.session.query(Settleplate.ID, Settleplate.ScanDate, Settleplate.Counts)
 	filters = query.filter(Settleplate.Barcode.like(barcode), Settleplate.Counts >= 0)
-	scans = filters.order_by(Settleplate.ScanDate.asc()).all()
+	# return sorted and max 10
+	scans = filters.order_by(Settleplate.ScanDate.asc()).limit(10).all()
 	timepoints = []
 	for scan in scans:
 		dt = round((scan.ScanDate - plateinfo.ScanDate).total_seconds() / 3600) # convert to hours
@@ -289,7 +326,7 @@ def scan_add():
 			sp.Counts = data['counts']
 			sp.Location = plateinfo.Location
 			sp.Batch = plateinfo.Batch
-			sp.Image = to_png(session['image'])
+			sp.Image = to_jpg(session['image'])
 			try:
 				db.session.add(sp)
 				db.session.commit()
@@ -328,4 +365,10 @@ def commit_new():
 
 @app.route('/settings', methods=['get'])
 def settings():
-	return render_template('admin.html')
+	form = SettingsForm()
+	form.populate()
+
+	if form.validate_on_submit() and g.isAdmin:
+		pass
+
+	return render_template('settings.html', form=form)

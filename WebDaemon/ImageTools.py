@@ -1,11 +1,12 @@
 import cv2
 import numpy as np
 
+c_x = 0.49
+c_y = 0.515
+r = 0.55
+
 def gen_mask(image):
 	h,w, *_ = image.shape
-	c_x = 0.49
-	c_y = 0.515
-	r = 0.58
 	circle_x = int(w*c_x)
 	circle_y = int(h*c_y)
 	circle_r = int(r*h)            
@@ -15,9 +16,6 @@ def gen_mask(image):
 
 def draw_mask(image):
 	h,w, *_ = image.shape
-	c_x = 0.49
-	c_y = 0.515
-	r = 0.58
 	circle_x = int(w*c_x)
 	circle_y = int(h*c_y)
 	circle_r = int(r*h)            
@@ -125,7 +123,7 @@ def autocrop_ring(img_org):
 	mask = gen_mask(img_prep)
 
 	# detect edges, threshold and mask
-	img_thrs = cv2.adaptiveThreshold(img_prep, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 20)
+	img_thrs = cv2.adaptiveThreshold(img_prep, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 10)
 	img_thrs_masked = cv2.bitwise_and(img_thrs, mask)
 	edges = np.transpose(np.nonzero(img_thrs_masked))
 	
@@ -141,7 +139,7 @@ def autocrop_ring(img_org):
 	y2 = min(mask_y+mask_r, img_org.shape[1])
 
 	# if too small radius (<30%) or too much off center, fail
-	min_radius = 0.3
+	min_radius = 0.2
 	#max_outside = 0.3
 	min_axis = min(img_org.shape[0:1])
 	rel_r = mask_r / min_axis # size of r relative to shortest axis

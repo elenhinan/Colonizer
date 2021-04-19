@@ -16,9 +16,11 @@
 			<div class="col">{{ wtf.form_field(form.Location) }}</div>
 			<div class="col">{{ wtf.form_field(form.Counts) }}</div>
 		</div>
+{% if not readonly %}
 		<div class="row">
 			<input type="submit" value="Update">
 		</div>
+{% endif %}
 </form>
 <img id="image" class="img-responsive" src="/images/{{settleplate.ID}}" style="width:100%;cursor:zoom-in">
 

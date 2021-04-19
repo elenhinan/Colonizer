@@ -9,7 +9,7 @@ from flask_bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
 from flask_fontawesome import FontAwesome
 from flask_session import Session
-from WebDaemon.Settings import Settings
+from WebDaemon.Settings import settings
 from WebDaemon.CameraUeye import CameraUeye
 from WebDaemon.Illumination import Illumination
 #from WebDaemon.CeleryTasks import CeleryWorker
@@ -40,21 +40,22 @@ FontAwesome(app)
 # Install session
 app.config.update(
 	SESSION_TYPE = 'filesystem',
-	PERMANENT_SESSION_LIFETIME = datetime.timedelta(seconds=int(Settings['general']['timeout']))
+	SESSION_COOKIE_SAMESITE = "Strict",
+	PERMANENT_SESSION_LIFETIME = datetime.timedelta(seconds=settings.getint('general','timeout'))
 )
 Session(app)
 
 # create database
 sql_info = {
-	'filepath' : Settings['db']['filepath'],
-	'driver'   : Settings['db']['driver'],
-	'host'     : Settings['db']['hostname'],
-	'port'     : Settings['db']['port'],
-	'user'     : Settings['db']['user'],
-	'password' : Settings['db']['password'],
-	'dbname'   : Settings['db']['name'],
-	'args'     : Settings['db']['arg'],
-	'table'    : Settings['db']['table']
+	'filepath' : settings['db_prod']['filepath'],
+	'driver'   : settings['db_prod']['driver'],
+	'host'     : settings['db_prod']['hostname'],
+	'port'     : settings['db_prod']['port'],
+	'user'     : settings['db_prod']['user'],
+	'password' : settings['db_prod']['password'],
+	'dbname'   : settings['db_prod']['name'],
+	'args'     : settings['db_prod']['arg'],
+	'table'    : settings['db_prod']['table']
 }
 if (sql_info['driver'] == "SQLITE"):
 	app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///{filepath}'.format(**sql_info)

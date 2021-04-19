@@ -26,14 +26,23 @@
 			{% endif %}
 		</ul>
 	</div>
-	{% if g.username %}
+	{% if g.testserver %}
 	<div class="navbar-collapse collapse">
-			<ul class="navbar-nav ml-auto">
-				<li class="navbar-text">User: {{ g.username }}</li>
-				<li class="nav-item" id="nav_register">
-					<a class="nav-link" href="logout">Logout</a>
-				</li>
-			</ul>
-		</div>
+		<ul class="navbar-nav">
+			<li class="navbar-text">[TEST SERVER]</li>
+		</ul>
+	</div>
 	{% endif %}
+	<div class="navbar-collapse collapse">
+		<ul class="navbar-nav ml-auto">
+			{% if g.username %}
+			<li class="navbar-text">User: {{g.username}}</li>
+			<li class="nav-item" id="nav_logout">
+				<a class="nav-link" href="logout">Logout</a>
+			</li>
+			{% else %}
+			<li class="navbar-text">Not logged in</li>
+			{% endif %}
+		</ul>
+	</div>
 </nav>

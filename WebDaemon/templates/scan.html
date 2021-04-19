@@ -196,6 +196,7 @@
 	}
 
 	function plate_info() {
+		//$("#loading").modal('show')
 		$.ajax({
 			type: "POST",
 			contentType: "application/json; charset=utf-8",
@@ -216,8 +217,8 @@
 					for (var i = 0; i < data.Timepoints.length; i++) {
 						table_append(data.Timepoints[i].ID, data.Timepoints[i].dT, data.Timepoints[i].Counts);
 					}
-
 				}
+				//$("#loading").modal('hide')
 			},
 			dataType: "json"
 		});

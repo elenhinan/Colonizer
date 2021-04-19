@@ -1,6 +1,29 @@
 {% extends "interface.html" %}
 
 {% block page_content %}
+<div class="row justify-content-between">
+	<div class="col-auto form-group">
+		<div class="input-group">
+			<div class="input-group-prepend"><label class="input-group-text">From</label></div>
+			<input type="date" class="form-control" id="date_from" value="{{date_from}}" required>
+		</div>
+	</div>
+	<div class="col-auto form-group">
+		<div class="input-group">
+			<div class="input-group-prepend"><label class="input-group-text">To</label></div>
+			<input type="date" class="form-control" id="date_to" value="{{date_to}}" required>
+		</div>
+	</div>
+	<div class="col-auto form-group">
+		<div class="input-group">
+			<div class="input-group-prepend"><label class="input-group-text">Batch</label></div>
+			<input type="text" class="form-control" id="batch" size=10 value="{{batch}}">
+		</div>
+	</div>
+	<div class="col-auto">
+		<button class="btn" type="button" id="search">Search</button>
+	</div>
+</div>
 <form class="form" method="post">
 	<table class="table table-sm table-striped">
 		<thead>
@@ -40,4 +63,34 @@
 	<button type="submit" class="btn btn-primary">Delete selected</button>
 	{% endif %}
 </form>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+
+<script>
+	$(document).ready(function() {
+		$("#search").on("click", function() {
+			// setup search params
+			params = [
+				"from="+$("#date_from").val(),
+				"to="+$("#date_to").val(),
+				"batch="+$("#batch").val(),
+				"name="+$("#name").val()
+			];
+			// reload page with new search
+			window.location.href =
+     			window.location.pathname +
+    			'?' + params.join('&');
+		});
+	})
+
+	function isoDate(dateobj) {
+		var options = { year: 'numeric', month: '2-digit', day: '2-digit'};
+		var isodate = dateobj.toLocaleDateString(undefined, options).replaceAll('/','-');
+		return isodate;
+	}
+	
+</script>
+
 {% endblock %}
