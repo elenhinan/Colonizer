@@ -5,12 +5,12 @@ import pyodbc
 #import flask_login
 import datetime
 from flask import Flask
-from flask_bootstrap import Bootstrap
+from flask_bootstrap import Bootstrap4
 from flask_sqlalchemy import SQLAlchemy
 from flask_fontawesome import FontAwesome
 from flask_session import Session
 from WebDaemon.Settings import settings
-from WebDaemon.CameraUeye import CameraUeye
+from WebDaemon.CameraRPiHQ import Camera
 from WebDaemon.Illumination import Illumination
 #from WebDaemon.CeleryTasks import CeleryWorker
 
@@ -32,10 +32,10 @@ app.config.update(
 #celery = CeleryWorker(app)
 
 # Install Bootstrap extension
-Bootstrap(app)
+bootstrap = Bootstrap4(app)
 
 # Install Font Awesome
-FontAwesome(app)
+fontawesome = FontAwesome(app)
 
 # Install session
 app.config.update(
@@ -66,10 +66,10 @@ db = SQLAlchemy(app)
 db.init_app(app)
 # update database model objects to reflect database table
 # db.reflect(app=app)
-db.create_all()
+#db.create_all()
 
 # initialize camera
-ueye = CameraUeye(app)
+camera = Camera(app)
 
 # initialize leds
 leds = Illumination(app)

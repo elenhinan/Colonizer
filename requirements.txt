@@ -1,0 +1,15 @@
+adafruit_circuitpython_neopixel==6.2.3
+Bootstrap_Flask==2.0.0
+celery==5.2.3
+Flask==2.0.2
+flask_bootstrap==3.3.7.1
+Flask_FontAwesome==0.1.5
+Flask_Session==0.4.0
+Flask_SQLAlchemy==2.5.1
+Flask_WTF==1.0.0
+neopixel==0.0.1
+numpy==1.19.5
+pyodbc==4.0.32
+pyueye==4.95.0
+SQLAlchemy==1.4.29
+WTForms==3.0.1

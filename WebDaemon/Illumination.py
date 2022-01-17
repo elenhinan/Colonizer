@@ -12,13 +12,13 @@ except ImportError:
 	LED_STRIP = None
 else:
 	# LED strip configuration:
-	LED_PIN = 21  # GPIO pin connected to the pixels (must support PWM!).
+	LED_PIN = board.D21  # GPIO pin connected to the pixels (must support PWM!).
 	LED_FREQ_HZ = 800000  # LED signal frequency in hertz (usually 800khz)
 	LED_DMA = 10  # DMA channel to use for generating signal (try 10)
 	LED_BRIGHTNESS = 255  # Set to 0 for darkest and 255 for brightest
 	LED_INVERT = False  # True to invert the signal (when using NPN transistor level shift)
 	LED_CHANNEL = 0
-	LED_STRIP = ws.SK6812_STRIP_RGBW
+	LED_STRIP = "RGBW"
 
 LED_LINE = range(0, 7)  # line led 1 to 7
 LED_RING = range(7, 30) # ring led 8 to 30
@@ -40,10 +40,7 @@ class Illumination():
 			self.logger.error("NeoPixel library not found")
 			
 		self.n_leds = len(LED_LINE)+len(LED_RING)
-		self.strip = Adafruit_NeoPixel(self.n_leds, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL,
-								  LED_STRIP)
-		# Intialize the library (must be called once before other functions).
-		self.strip.begin()
+		self.strip = NeoPixel(LED_PIN, self.n_leds)
 
 		# Mode selection
 		self.mode = IlluminationMode.OFF

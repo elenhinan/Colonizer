@@ -33,11 +33,13 @@ class Settleplate(db.Model):
 		return '<Settleplate %r>' % self.ID
 
 class SettleplateForm(FlaskForm):
-	Username = StringField('Name', [validators.Required("Please enter study name")])
+	Username = StringField('Name', [validators.DataRequired("Please enter study name")])
 	ScanDate = DateTimeField('Study Date')
-	Barcode = StringField('Barcode', [validators.Required("Settleplate barcode needed")])
+	Barcode = StringField('Barcode', [validators.DataRequired("Settleplate barcode needed")])
 	Lot_no = StringField('Lot number')
 	Expires = DateField('Expire Date')
 	Counts = IntegerField('Counts')
-	Location = StringField('Location', [validators.Required("Location needed")])
-	Batch = StringField('Batch', [validators.Required("Batch# needed")])
+	Location = StringField('Location', [validators.DataRequired("Location needed")])
+	Batch = StringField('Batch', [validators.DataRequired("Batch# needed")])
+
+db.create_all()

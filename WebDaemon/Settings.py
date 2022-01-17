@@ -5,7 +5,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, FloatField, IntegerField, validators, PasswordField, HiddenField, FieldList, FormField
 
 class DatabaseForm(FlaskForm):
-	driver       = StringField('Driver', [validators.Required("enter DB driver")])
+	driver       = StringField('Driver', [validators.DataRequired("enter DB driver")])
 	filepath     = StringField('Filepath')
 	hostname     = StringField('Host')
 	port         = IntegerField('Port')
@@ -38,7 +38,7 @@ _inifile_path = "./settleplate.ini"
 settings = ConfigParser()
 _defaults = {
 	'db_prod': {
-		'driver'      : 'ODBC',
+		'driver'      : 'SQLITE',
 		'filepath'    : 'database_prod.sqlite',
 		'hostname'    : 'localhost',
 		'port'        : '1433',
@@ -49,7 +49,7 @@ _defaults = {
 		'table'       : 'SETTLEPLATE'
 	},
 	'db_test': {
-		'driver'      : 'ODBC',
+		'driver'      : 'SQLITE',
 		'filepath'    : 'database_test.sqlite',
 		'hostname'    : 'localhost',
 		'port'        : '1433',
@@ -66,7 +66,7 @@ _defaults = {
 		'settleplate' : r'^(?P<serial>\d+(?P<lot>\d{11})(?P<year>\d{2})(?P<month>\d{2})(?P<day>\d{2}))$' + '\n' + r'^(?P<serial>\d+\s?(?P<lot>\d{10})(?P<year>\d{4})(?P<month>\d{2})(?P<day>\d{2})\w+)$'
 	},
 	'general': {
-		'adminpwd'    : 'pet4life',
+		'adminpwd'    : 'admin',
 		'user_min'    : 4,
 		'user_max'    : 8,
 		'timeout'     : 300,

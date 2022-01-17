@@ -2,7 +2,7 @@
 import io
 import os
 from datetime import datetime, timedelta, date
-from WebDaemon import app, db, ueye, leds
+from WebDaemon import app, db, camera, leds
 from flask import render_template, request, jsonify, redirect, make_response, Response, session, url_for, g
 from WebDaemon.Settleplate import Settleplate, SettleplateForm
 from WebDaemon.BarcodeParser import Decoder
@@ -10,12 +10,12 @@ from WebDaemon.ImageTools import *
 from WebDaemon.Settings import settings, user_validator, SettingsForm
 #from WebDaemon.CeleryTasks import add_scan_async
 
-@app.before_request
+#@app.before_request
 def login_check(admin=False):
 	session.permanent = True
 	session.modified = True
 
-	if request.path.startswith(('/static/','/bootstrap/static/')):
+	if request.path.startswith(('/static/','/bootstrap/')):
 		return
 
 	if session.get('user') is None and request.endpoint not in ['login', 'logout']:
@@ -62,11 +62,11 @@ def scan_settleplate():
 	
 	# # validate form if POST
 	if request.method == 'POST' and form.validate():
-	   form.populate_obj(sp)
-	   db.session.add(sp)
-	   db.session.commit()
-	   new_url = request.base_url + "?id=%d"%sp.id
-	   return redirect(new_url)
+		form.populate_obj(sp)
+		db.session.add(sp)
+		db.session.commit()
+		new_url = request.base_url + "?id=%d"%sp.id
+		return redirect(new_url)
 
 	return render_template('scan.html', settleplate=sp, form=form)
 
@@ -90,11 +90,11 @@ def show_settleplate():
 
 	# validate form if POST
 	if form.validate_on_submit() and not readonly:
-	   form.populate_obj(sp)
-	   db.session.add(sp)
-	   db.session.commit()
-	   new_url = request.base_url + "?id=%d"%sp.ID
-	   return redirect(new_url)
+		form.populate_obj(sp)
+		db.session.add(sp)
+		db.session.commit()
+		new_url = request.base_url + "?id=%d"%sp.ID
+		return redirect(new_url)
 
 	return render_template('settleplate.html', settleplate=sp, form=form, readonly=readonly)
 		
@@ -119,10 +119,10 @@ def capture():
 		leds.Flash(leds_flash)
 		leds.Ring(leds_ring)
 		if hdr == None:
-			image = ueye.capture(exp)
+			image = camera.capture(exp)
 		else:
-			image, retval = autocrop_rect_hdr(ueye.capture_hdr())
-			#image = hdr_process(ueye.capture_hdr())
+			image, retval = autocrop_rect_hdr(camera.capture_hdr())
+			#image = hdr_process(camera.capture_hdr())
 		leds.Flash(False)
 		leds.Ring(False)
 
@@ -243,9 +243,9 @@ def parse_string():
 	if result is None:
 		return jsonify({})
 	if 'user' in result:
-	   session['user'] = result['user']
+		session['user'] = result['user']
 	if 'batch' in result:
-	   session['batch'] = result['batch']
+		session['batch'] = result['batch']
 	if 'serial' in result:
 		result['used'] = len(db.session.query(Settleplate.ScanDate).filter(Settleplate.Barcode.like(result['serial'])).all())
 	return jsonify(result)
