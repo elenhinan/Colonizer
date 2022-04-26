@@ -1,0 +1,2 @@
+# Add to end of file to fix ssh hangups
+IPQoS cs0 cs0

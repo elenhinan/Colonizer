@@ -1,9 +1,7 @@
 {% extends "interface.html" %}
-{% import "bootstrap4/form.html" as wtf %}
 {% block page_content %}
 <form class="form form-horizontal" method="post">
    {{ form.hidden_tag() }}
-   {{ wtf.form_errors(form, hiddens="only") }}
    <fieldset><legend><label for='database'>Database</label></legend>
    {% for field in form.db if field.widget.input_type != 'hidden' %}
    <div class="row">

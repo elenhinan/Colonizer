@@ -2,7 +2,8 @@
 import io
 import os
 from datetime import datetime, timedelta, date
-from WebDaemon import app, db, camera, leds
+from calendar import monthrange
+from WebDaemon import app, db, cam, leds
 from flask import render_template, request, jsonify, redirect, make_response, Response, session, url_for, g
 from WebDaemon.Settleplate import Settleplate, SettleplateForm
 from WebDaemon.BarcodeParser import Decoder
@@ -10,7 +11,7 @@ from WebDaemon.ImageTools import *
 from WebDaemon.Settings import settings, user_validator, SettingsForm
 #from WebDaemon.CeleryTasks import add_scan_async
 
-#@app.before_request
+@app.before_request
 def login_check(admin=False):
 	session.permanent = True
 	session.modified = True
@@ -37,8 +38,10 @@ def login():
 		if valid:
 			session['user'] = request.form['username']
 			session['user_time'] = datetime.now()
+			app.logger.info(f"User {session['user']} logged in")
 			return redirect(url_for('index'))
 		else:
+			app.logger.error(f"Wrong password for user {session['user']}")
 			session['user'] = None
 	
 	return render_template('login.html', error=error)
@@ -101,48 +104,49 @@ def show_settleplate():
 
 @app.route('/images/live', methods=['GET'])
 def capture():
-	if 'norefresh' not in request.args:
-		# get parameters
-		crop = request.args.get('crop')
-		light = request.args.get('light')
-		hdr = request.args.get('hdr')
-		exp = request.args.get('exp')
-		debug = request.args.get('debug') != None
+	# if 'norefresh' not in request.args:
+	# 	# get parameters
+	# 	crop = request.args.get('crop')
+	# 	light = request.args.get('light')
+	# 	hdr = request.args.get('hdr')
+	# 	exp = request.args.get('exp')
+	# 	debug = request.args.get('debug') != None
 
-		if exp != None:
-			exp = float(exp)
+	# 	if exp != None:
+	# 		exp = float(exp)
 		
-		# turn on leds and capture image
-		leds_ring = (light == 'ring' or light == 'both')
-		leds_flash = (light == 'flash' or light == 'both')
+	# 	# turn on leds and capture image
+	# 	leds_ring = (light == 'ring' or light == 'both')
+	# 	leds_flash = (light == 'flash' or light == 'both')
 		
-		leds.Flash(leds_flash)
-		leds.Ring(leds_ring)
-		if hdr == None:
-			image = camera.capture(exp)
-		else:
-			image, retval = autocrop_rect_hdr(camera.capture_hdr())
-			#image = hdr_process(camera.capture_hdr())
-		leds.Flash(False)
-		leds.Ring(False)
+	# 	leds.Flash(leds_flash)
+	# 	leds.Ring(leds_ring)
+	# 	if hdr == None:
+	# 		image = cam.capture(exp)
+	# 	else:
+	# 		image, retval = autocrop_rect_hdr(cam.capture_hdr())
+	# 		#image = hdr_process(camera.capture_hdr())
+	# 	leds.Flash(False)
+	# 	leds.Ring(False)
 
-		# process image
-		retval = False
-		if crop == 'ring':
-			image_cropped, retval = autocrop_ring(image)
-		elif crop == 'rect':
-			image_cropped, retval = autocrop_rect(image)
-		elif retval == False and debug:
-			image = draw_mask(image)
-		if retval == True:
-			image = image_cropped
+	# 	# process image
+	# 	retval = False
+	# 	if crop == 'ring':
+	# 		image_cropped, retval = autocrop_ring(image)
+	# 	elif crop == 'rect':
+	# 		image_cropped, retval = autocrop_rect(image)
+	# 	elif retval == False and debug:
+	# 		image = draw_mask(image)
+	# 	if retval == True:
+	# 		image = image_cropped
 
-		session['image'] = image
-		session['image_jpeg'] = to_jpg(image)
-		session['image_timestamp'] = datetime.now()
+	# 	session['image'] = image
+	# 	session['image_jpeg'] = to_jpg(image)
+	# 	session['image_timestamp'] = datetime.now()
 
 	# todo: check for valid image_jpeg
 
+	session['image_jpeg'] = None
 	resp = make_response(session['image_jpeg'])
 	resp.headers.set('Content-Type', 'image/jpeg')
 	resp.headers.set('Content-Disposition', 'attachment', capture='.jpg')
@@ -231,6 +235,62 @@ def list_settleplates():
 	# return	results
 	settleplates = query.order_by(Settleplate.ScanDate.desc()).all()
 	return render_template('list.html', settleplates=settleplates, date_from=date_from, date_to=date_to, batch=batch)
+
+@app.route('/report', methods=['GET'])
+def generate_report():
+	# define search from request data
+	period = request.args.get('period', 52 , int)
+	year = request.args.get('year', datetime.now().year, int)
+
+	if period == 52: # week
+		def_number = datetime.now().date().isocalendar()[1]
+		week = request.args.get('number', def_number, int)
+		date_from = datetime.fromisocalendar(year,week,1)
+		date_to = datetime.fromisocalendar(year,week,7) + timedelta(days=1)
+		batch= "Miljøkontroll-Ukentlig"
+	elif period == 12: # month
+		def_number = datetime.now().month
+		month = request.args.get('number', def_number, int)
+		last_day = monthrange(year,month)[1]
+		date_from = datetime(year, month,1)
+		date_to = datetime(year, month, last_day)  + timedelta(days=1)
+		batch = "Miljøkontroll-Månedlig"
+	else: # quarter
+		def_number = int(np.ceil(datetime.now().month/3))
+		month = request.args.get('number', def_number, int)*3
+		last_day = monthrange(year,month)[1]
+		date_from = datetime(year,month-2,1)
+		date_to = datetime(year,month,last_day) + timedelta(days=1)
+		batch = "Miljøkontroll-Kvartalsvis"
+
+	#define query
+	query = db.session.query(Settleplate.Barcode)
+	query = query.filter(
+		Settleplate.Counts == -1,
+		Settleplate.ScanDate >= date_from,
+		Settleplate.ScanDate < date_to,
+		Settleplate.Batch.like(batch)
+	)
+	# get ID of all settleplates in report
+	settleplates = query.order_by(Settleplate.ScanDate.desc()).all()
+	app.logger.error(f'Queried "{batch}" between {date_from} and {date_to}, {len(settleplates)} retrieved')
+
+
+	# return	results and sort in dict
+	locations = []
+	for sp in settleplates:
+		locations.append(Settleplate.query.filter(Settleplate.Barcode.like(sp.Barcode)).order_by(Settleplate.ScanDate).all())
+
+	# for sp in query.order_by(Settleplate.ScanDate.desc()).all():
+	# 	if sp.Location not in locations:
+	# 		locations[sp.Location] = {}
+	# 	if sp.Barcode not in locations[sp.Location]:
+	# 		locations[sp.Location][sp.Barcode] = {}
+	# 	locations[sp.Location][sp.Barcode] = sp
+	# locations = [list(l.values()) for l in locations.values()]
+
+
+	return render_template('report.html', settleplates=locations, now=datetime.now())
 
 @app.route('/camera', methods=['get'])
 def camera():

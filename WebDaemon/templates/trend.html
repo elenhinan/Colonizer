@@ -1,0 +1,60 @@
+{% extends "interface.html" %}
+
+{% block page_content %}
+<div class="row justify-content-between">
+   <div class="col-auto form-group">
+		<div class="input-group">
+			<div class="input-group-prepend"><label class="input-group-text">Year</label></div>
+			<select class="form-select" id="year">
+            {% for y in range(now.year, now.year-5, -1) %}
+               <option value="{{ y }}">{{ y }}</option>
+            {% endfor %}
+         </select>
+		</div>
+	</div>
+	<div class="col-auto form-group">
+		<div class="input-group">
+			<div class="input-group-prepend"><label class="input-group-text">Period</label></div>
+			<select class="form-select" id="period">
+            <option value="52">Week</option>
+            <option value="12">Month</option>
+            <option value="4">Quarter</option>
+         </select>
+		</div>
+	</div>
+	<div class="col-auto form-group">
+		<div class="input-group">
+			<div class="input-group-prepend"><label class="input-group-text">Number</label></div>
+			<select class="form-select" style="width:48px;" id="number">
+         </select>
+		</div>
+	</div>
+	<div class="col-auto noprint">
+		<button class="btn btn-primary" type="button" id="generate">Generate</button>
+	</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+
+<script>
+	$(document).ready(function() {
+		$("#generate").on("click", function() {
+			// setup search params
+			params = [
+				"period="+$("#period").val(),
+				"number="+$("#number").val(),
+            "year="+$("#year").val()
+			];
+			// reload page with new search
+			window.location.href =
+     			window.location.pathname +
+    			'?' + params.join('&');
+		});
+      $("#period").on("change", update_selector);
+		update_selector();
+	})
+</script>
+
+{% endblock %}

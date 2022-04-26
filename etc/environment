@@ -1,0 +1,4 @@
+https_proxy=http://localhost:6666
+http_proxy=http://localhost:6666
+HTTPS_PROXY=http://localhost:6666
+HTTP_PROXY=http://localhost:6666

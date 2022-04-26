@@ -1,20 +1,19 @@
 {% extends "interface.html" %}
-{% import "bootstrap4/form.html" as wtf %}
+{% from "bootstrap4/form.html" import render_field %}
 {% block page_content %}
 <form class="form" method="post">
 		{{ form.hidden_tag() }}
-		{{ wtf.form_errors(form, hiddens="only") }}
 		<div class="row">
-			<div class="col">{{ wtf.form_field(form.Username) }}</div>
-			<div class="col">{{ wtf.form_field(form.ScanDate) }}</div>
+			<div class="col">{{ render_field(form.Username) }}</div>
+			<div class="col">{{ render_field(form.ScanDate) }}</div>
 		</div>
 		<div class="row">
-			<div class="col">{{ wtf.form_field(form.Barcode) }}</div>
-			<div class="col">{{ wtf.form_field(form.Batch) }}</div>
+			<div class="col">{{ render_field(form.Barcode) }}</div>
+			<div class="col">{{ render_field(form.Batch) }}</div>
 		</div>
 		<div class="row">
-			<div class="col">{{ wtf.form_field(form.Location) }}</div>
-			<div class="col">{{ wtf.form_field(form.Counts) }}</div>
+			<div class="col">{{ render_field(form.Location) }}</div>
+			<div class="col">{{ render_field(form.Counts) }}</div>
 		</div>
 {% if not readonly %}
 		<div class="row">

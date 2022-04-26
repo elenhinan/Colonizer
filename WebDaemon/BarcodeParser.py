@@ -10,6 +10,7 @@ class _BarcodeParser():
 		# compile regexp
 		self.regex_patterns = []
 		self.init_regexp()
+		self.string_pattern = re.compile(r"[^\w:\-_]")
 
 	def init_regexp(self):
 		self.regex_patterns.clear()
@@ -19,6 +20,8 @@ class _BarcodeParser():
 				self.regex_patterns.append(re.compile(regex))
 
 	def parse_input(self, text):
+		# clean text
+		text = self.string_pattern.sub('', text)
 		params = None
 		for pattern in self.regex_patterns:
 			result = pattern.search(text)

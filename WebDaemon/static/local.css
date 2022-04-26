@@ -26,3 +26,11 @@
 .label-text {
   width: 140px;
 }
+@media print {
+  .noprint {
+    display:none;
+  }
+}
+tr.table-subheader td{
+  background-color: rgb(240,240,240) !important;
+}

@@ -4,14 +4,15 @@ import pyodbc
 #import urllib
 #import flask_login
 import datetime
+import HWLayer.Client
 from flask import Flask
 from flask_bootstrap import Bootstrap4
 from flask_sqlalchemy import SQLAlchemy
 from flask_fontawesome import FontAwesome
 from flask_session import Session
 from WebDaemon.Settings import settings
-from WebDaemon.CameraRPiHQ import Camera
-from WebDaemon.Illumination import Illumination
+#from WebDaemon.CameraRPiHQ import CameraRPiHQ
+#from WebDaemon.Illumination import Illumination
 #from WebDaemon.CeleryTasks import CeleryWorker
 
 # create flask app
@@ -69,9 +70,9 @@ db.init_app(app)
 #db.create_all()
 
 # initialize camera
-camera = Camera(app)
+cam = HWLayer.Client.Camera(app)
 
 # initialize leds
-leds = Illumination(app)
+leds = HWLayer.Client.LEDs(app)
 
 from WebDaemon import Routes
