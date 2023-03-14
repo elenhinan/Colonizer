@@ -17,3 +17,5 @@ rpi/wlan_setup
 rpi/uEyeSDK-4.90.00-ARM_LINUX_IDS_GNUEABI_HF.tgz
 rpi/ws281x.diff
 WebDaemon/database_prod.sqlite
+etc/ect/fstab
+home/.smbcredentials

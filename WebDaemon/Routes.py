@@ -3,7 +3,7 @@ import io
 import os
 from datetime import datetime, timedelta, date
 from calendar import monthrange
-from WebDaemon import app, db, cam, leds
+from WebDaemon import app, db, hwclient
 from flask import render_template, request, jsonify, redirect, make_response, Response, session, url_for, g
 from WebDaemon.Settleplate import Settleplate, SettleplateForm
 from WebDaemon.BarcodeParser import Decoder
@@ -104,49 +104,39 @@ def show_settleplate():
 
 @app.route('/images/live', methods=['GET'])
 def capture():
-	# if 'norefresh' not in request.args:
-	# 	# get parameters
-	# 	crop = request.args.get('crop')
-	# 	light = request.args.get('light')
-	# 	hdr = request.args.get('hdr')
-	# 	exp = request.args.get('exp')
-	# 	debug = request.args.get('debug') != None
+	if 'norefresh' not in request.args:
+		# get parameters
+		crop = request.args.get('crop')
+		light = request.args.get('light')
+		#hdr = request.args.get('hdr')
+		#exp = request.args.get('exp')
+		debug = request.args.get('debug') != None
 
-	# 	if exp != None:
-	# 		exp = float(exp)
+		#if exp != None:
+		#	exp = float(exp)
 		
-	# 	# turn on leds and capture image
-	# 	leds_ring = (light == 'ring' or light == 'both')
-	# 	leds_flash = (light == 'flash' or light == 'both')
+		# turn on leds and capture image
+		leds_ring = (light == 'ring' or light == 'both')
+		leds_flash = (light == 'flash' or light == 'both')
 		
-	# 	leds.Flash(leds_flash)
-	# 	leds.Ring(leds_ring)
-	# 	if hdr == None:
-	# 		image = cam.capture(exp)
-	# 	else:
-	# 		image, retval = autocrop_rect_hdr(cam.capture_hdr())
-	# 		#image = hdr_process(camera.capture_hdr())
-	# 	leds.Flash(False)
-	# 	leds.Ring(False)
+		image = hwclient.capture_image()
 
-	# 	# process image
-	# 	retval = False
-	# 	if crop == 'ring':
-	# 		image_cropped, retval = autocrop_ring(image)
-	# 	elif crop == 'rect':
-	# 		image_cropped, retval = autocrop_rect(image)
-	# 	elif retval == False and debug:
-	# 		image = draw_mask(image)
-	# 	if retval == True:
-	# 		image = image_cropped
+		# process image
+		retval = False
+		if crop == 'ring':
+			image_cropped, retval = autocrop_ring(image)
+		elif crop == 'rect':
+			image_cropped, retval = autocrop_rect(image)
+		elif retval == False and debug:
+			image = draw_mask(image)
+		if retval == True:
+			image = image_cropped
 
-	# 	session['image'] = image
-	# 	session['image_jpeg'] = to_jpg(image)
-	# 	session['image_timestamp'] = datetime.now()
+		session['image'] = image
+		session['image_jpeg'] = to_jpg(image)
+		session['image_timestamp'] = datetime.now()
 
 	# todo: check for valid image_jpeg
-
-	session['image_jpeg'] = None
 	resp = make_response(session['image_jpeg'])
 	resp.headers.set('Content-Type', 'image/jpeg')
 	resp.headers.set('Content-Disposition', 'attachment', capture='.jpg')
