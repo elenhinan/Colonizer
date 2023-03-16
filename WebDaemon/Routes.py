@@ -9,14 +9,14 @@ from WebDaemon.Settleplate import Settleplate, SettleplateForm
 from WebDaemon.BarcodeParser import Decoder
 from WebDaemon.ImageTools import *
 from WebDaemon.Settings import settings, user_validator, SettingsForm
-#from WebDaemon.CeleryTasks import add_scan_async
+
 
 @app.before_request
 def login_check(admin=False):
 	session.permanent = True
 	session.modified = True
 
-	if request.path.startswith(('/static/','/bootstrap/')):
+	if request.path.startswith(('/static/','/bootstrap/','/status')):
 		return
 
 	if session.get('user') is None and request.endpoint not in ['login', 'logout']:
@@ -24,6 +24,7 @@ def login_check(admin=False):
 
 	g.username = session.get("user")
 	g.isAdmin = (g.username == 'admin')
+
 	#g.testserver = settings.getboolean('general','testserver')
 
 @app.route('/')
@@ -119,22 +120,25 @@ def capture():
 		leds_ring = (light == 'ring' or light == 'both')
 		leds_flash = (light == 'flash' or light == 'both')
 		
-		image = hwclient.capture_image()
+		success, image = hwclient.capture_image()
 
-		# process image
-		retval = False
-		if crop == 'ring':
-			image_cropped, retval = autocrop_ring(image)
-		elif crop == 'rect':
-			image_cropped, retval = autocrop_rect(image)
-		elif retval == False and debug:
-			image = draw_mask(image)
-		if retval == True:
-			image = image_cropped
+		if success:
+			# process image
+			retval = False
+			if crop == 'ring':
+				image_cropped, retval = autocrop_ring(image)
+			elif crop == 'rect':
+				image_cropped, retval = autocrop_rect(image)
+			elif retval == False and debug:
+				image = draw_mask(image)
+			if retval == True:
+				image = image_cropped
 
-		session['image'] = image
-		session['image_jpeg'] = to_jpg(image)
-		session['image_timestamp'] = datetime.now()
+			session['image'] = image
+			session['image_jpeg'] = to_jpg(image)
+			session['image_timestamp'] = datetime.now()
+		else:
+			session['image_jpeg'] = None
 
 	# todo: check for valid image_jpeg
 	resp = make_response(session['image_jpeg'])
@@ -150,6 +154,7 @@ def capture():
 def save_image():
 	try:
 		data = request.get_json()
+		# todo get path from settings
 		path = '/mnt/petra/Data/Colonizer'
 		params = {
 			'user' : session.get("user"),
@@ -422,3 +427,22 @@ def settings():
 		pass
 
 	return render_template('settings.html', form=form)
+
+@app.route('/status', methods=(['GET']))
+def status():
+	status = {}
+
+	# check sql status
+	try:
+		db.session.execute('SELECT 1')
+	except:
+		status['sql'] = False
+	else:
+		status['sql'] = True
+
+	# check camera status
+	status['camera'] = hwclient.is_ready()
+
+	# check storage status
+	status['storage'] = False
+	return jsonify(status)

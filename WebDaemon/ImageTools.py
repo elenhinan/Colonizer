@@ -62,7 +62,7 @@ def to_png(image):
 
 def find_rect(img_org):
 	# reduce image size for speed
-	factor = 4
+	factor = 8
 
 	# use gray only
 	img_gray = cv2.cvtColor(img_org, cv2.COLOR_RGB2GRAY)
@@ -111,7 +111,7 @@ def autocrop_rect_hdr(hdr_series):
 
 def autocrop_ring(img_org):
 	# reduce image size for speed
-	factor = 4
+	factor = 8
 
 	# use gray only
 	img_gray = cv2.cvtColor(img_org, cv2.COLOR_RGB2GRAY)

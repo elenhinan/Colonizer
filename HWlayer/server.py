@@ -36,7 +36,7 @@ def start_socket():
    except Exception as e:
       log.error('Could not create ZeroMQ socket')
 
-from HWServer.picamera import PiHQCamera2
+from HWlayer.picamera import PiHQCamera2
 def start_camera():
    global camera
    log.info('Setting up camera')

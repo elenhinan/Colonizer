@@ -34,3 +34,17 @@
 tr.table-subheader td{
   background-color: rgb(240,240,240) !important;
 }
+
+.status {
+  color: rgb(114, 128, 139);
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.status-online {
+  color: rgb(38, 120, 188);
+}
+
+.status-offline {
+  color: rgb(217, 83, 79);
+}

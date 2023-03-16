@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 import os
 import pyodbc
-#import urllib
-#import flask_login
 import datetime
 from flask import Flask
 from flask_bootstrap import Bootstrap4
@@ -10,7 +8,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_fontawesome import FontAwesome
 from flask_session import Session
 from WebDaemon.Settings import settings
-import HWServer.client as hwclient
+import HWlayer.client as hwclient
 
 # create flask app
 app = Flask(__name__)
@@ -22,20 +20,16 @@ app.config.update(
 	BOOTSTRAP_SERVE_LOCAL = True
 )
 
-# Setup celery
-app.config.update(
-    CELERY_BROKER_URL='redis://localhost:6379',
-    CELERY_RESULT_BACKEND='redis://localhost:6379'
-)
-#celery = CeleryWorker(app)
-
 # Install Bootstrap extension
+app.logger.info('Enabling Bootstrap4...')
 bootstrap = Bootstrap4(app)
 
 # Install Font Awesome
+app.logger.info('Enabling FontAwesome...')
 fontawesome = FontAwesome(app)
 
 # Install session
+app.logger.info('Setting up local session storage...')
 app.config.update(
 	SESSION_TYPE = 'filesystem',
 	SESSION_COOKIE_SAMESITE = "Strict",
@@ -44,16 +38,18 @@ app.config.update(
 Session(app)
 
 # create database
+app.logger.info('Connecting to SQL database...')
+config = 'db_test'
 sql_info = {
-	'filepath' : settings['db_prod']['filepath'],
-	'driver'   : settings['db_prod']['driver'],
-	'host'     : settings['db_prod']['hostname'],
-	'port'     : settings['db_prod']['port'],
-	'user'     : settings['db_prod']['user'],
-	'password' : settings['db_prod']['password'],
-	'dbname'   : settings['db_prod']['name'],
-	'args'     : settings['db_prod']['arg'],
-	'table'    : settings['db_prod']['table']
+	'filepath' : settings[config]['filepath'],
+	'driver'   : settings[config]['driver'],
+	'host'     : settings[config]['hostname'],
+	'port'     : settings[config]['port'],
+	'user'     : settings[config]['user'],
+	'password' : settings[config]['password'],
+	'dbname'   : settings[config]['name'],
+	'args'     : settings[config]['arg'],
+	'table'    : settings[config]['table']
 }
 if (sql_info['driver'] == "SQLITE"):
 	app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///{filepath}'.format(**sql_info)
@@ -67,6 +63,8 @@ db.init_app(app)
 #db.create_all()
 
 # initialize camera
+app.logger.info('Connecting to RPI HW server...')
 hwclient.start_socket('localhost')
 
+app.logger.info('Setting up routes...')
 from WebDaemon import Routes

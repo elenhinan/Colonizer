@@ -2,13 +2,12 @@
 {% block styles %}
   {{super()}}
   {{fontawesome_html()}}
-  <link rel="stylesheet" href="{{ url_for('static', filename='local.css')}}">
 {% endblock %}
 
 {% block content %}
 <div class="container" style="width: 1000px; padding: 5px">
   <div class="card border-dark">
-    <div class="card-header text-white bg-light">
+    <div class="card-header bg-light">
       {% include "navbar.html" %}
     </div>
     <div class="card-body">
