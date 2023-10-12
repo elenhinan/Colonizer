@@ -1,5 +1,6 @@
 $(document).ready(function() {
    update_status();
+   setTimeout(update_status, 5000);
    //setInterval(update_status, 30000)
 });
 

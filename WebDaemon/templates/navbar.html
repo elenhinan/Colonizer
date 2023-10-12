@@ -19,14 +19,14 @@
 			<li class="nav-item" id="nav_image">
 				<a class="nav-link" href="camera">Camera</a>
 			</li>
-			<li class="nav-item" id="nav_report">
-				<a class="nav-link" href="report">Reports</a>
-			</li>
 			{% if g.isAdmin %}
 			<li class="nav-item" id="nav_settings">
 				<a class="nav-link" href="settings">Settings</a>
 			</li>
 			{% endif %}
+			<li class="nav-item" id="nav_logout">
+				<a class="nav-link" href="logout">Logout</a>
+			</li>
 		</ul>
 	</div>
 	{% if g.testserver %}
@@ -40,9 +40,6 @@
 		<ul class="navbar-nav ml-auto">
 			{% if g.username %}
 			<li class="navbar-text">User: {{g.username}}</li>
-			<li class="nav-item" id="nav_logout">
-				<a class="nav-link" href="logout">Logout</a>
-			</li>
 			{% else %}
 			<li class="navbar-text">Not logged in</li>
 			{% endif %}

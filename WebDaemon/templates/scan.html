@@ -1,4 +1,9 @@
 {% extends "interface.html" %}
+{% block head %}
+	{{ super() }}
+	<script src="{{ url_for('static', filename='hive/tf.min.js')}}"></script>
+	<link rel="stylesheet" href="{{ url_for('static', filename='hive/CFUdetect.css')}}">
+{% endblock %}
 {% from "bootstrap4/form.html" import form_errors %}
 {% block page_content %}
 <div class="row">
@@ -47,8 +52,10 @@
 	<div class="col mx-3">
 		<div class="row mb-3">
 			<div style="width:100%;height:0; padding-top:100%;position:relative;">
-				<img id="image" class="img-responsive" src=""
-					style="position:absolute; top:0; left:0; width:100%;cursor:zoom-in">
+				<div class="img-overlay-wrap">
+					<img id="image" class="img-responsive" src="" style="position:absolute; top:0; left:0; width:100%;cursor:zoom-in">
+					<svg viewBox="0 0 1 1" preserveAspectRatio="none" id="overlay"></svg>
+				</div>
 			</div>
 		</div>
 		<div class="row">
@@ -59,6 +66,7 @@
 				<input type="number" min=0 step=1 class="form-control" id="counts" placeholder="&lt;# of colonies&gt;">
 				<div class="input-group-append">
 					<button id="refresh" type="button" class="btn btn-secondary"><i class="fa fa-camera"></i></button>
+					<button id="detect" type="button" class="btn btn-secondary"><i class="fa fa-magic"></i></button>
 					<button id="commit" type="button" class="btn btn-secondary"><i class="fa fa-save"></i></button>
 				</div>
 			</div>
@@ -91,6 +99,7 @@
 
 {% block scripts %}
 {{ super() }}
-<script src="/static/js/scan.js"></script>
-
+<script src="{{ url_for('static', filename='js/scan.js')}}"></script>
+<script src="{{ url_for('static', filename='hive/CFUdraw.js')}}"></script>
+<script src="{{ url_for('static', filename='hive/CFUdetect.js')}}"></script>
 {% endblock %}

@@ -1,4 +1,9 @@
 {% extends "interface.html" %}
+{% block head %}
+	{{ super() }}
+	<script src="{{ url_for('static', filename='hive/tf.min.js')}}"></script>
+	<link rel="stylesheet" href="{{ url_for('static', filename='hive/CFUdetect.css')}}">
+{% endblock %}
 {% from "bootstrap4/form.html" import render_field %}
 {% block page_content %}
 <form class="form" method="post">
@@ -34,9 +39,11 @@
 
 {% block scripts %}
 {{ super() }}
+<script src="{{ url_for('static', filename='hive/CFUdraw.js')}}"></script>
 <script>
 	$("#image").click(function() {
 		$('#imagemodal').modal('show');
 	});
+	cfu_import('{{ colonies | tojson | safe }}')
 </script>
 {% endblock %}

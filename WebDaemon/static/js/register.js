@@ -4,8 +4,7 @@ var new_serial;
 var new_lotno;
 var new_location;
 var text_input;
-const session_timeout=5*60;
-var session_timeout_t0=null;
+var batch_locations;
 
 const GLYPH = {
    WAIT: 'wait',
@@ -23,18 +22,6 @@ const STATE = {
    LOOP:     'loop'
 }
 
-// reset page if no input in 10 minutes
-function session_timeout_update() {
-   if(session_timeout_t0 == null) return;
-
-   let time_now = new Date();
-   progress = 1 - ((time_now - session_timeout_t0) / (1000 * session_timeout));
-   $("#timeout").css('width',progress*100+"%");
-   if(progress < 0) {
-      transition(STATE.USER);
-      session_timeout_t0 = null;
-   }
-}
 
 // transition state machine
 function transition(new_state) {
@@ -97,8 +84,6 @@ function transition(new_state) {
 }
 
 function process_input(data) {
-   // reset session timeout timer
-   session_timeout_t0 = new Date();
    switch(state) {
       case STATE.USER:
          if("user" in data) {
@@ -124,9 +109,10 @@ function process_input(data) {
          if("serial" in data) {
             // check if settleplate already registered
             if(data.used > 0) {
-               $("#duplicate").slideDown();
+               $("#duplicate-plate").slideDown();
+               input_fail();
             } else {
-               $("#duplicate").slideUp();
+               $("#duplicate-plate").slideUp();
                new_serial = data.serial;
                if("lot" in data) new_lotno = data.lot;
                else new_lotno = data.serial;
@@ -140,9 +126,15 @@ function process_input(data) {
 
       case STATE.LOCATION:
          if("location" in data) {
-            new_location = data.location;
-            input_pass();
-            transition(STATE.REGISTER);
+            if (location_exist(data["location"])) {
+               $("#duplicate-location").slideDown();
+               input_fail();
+            } else {
+               $("#duplicate-location").slideUp();
+               new_location = data.location;
+               input_pass();
+               transition(STATE.REGISTER);
+            }
          } else {
             input_fail();
          }
@@ -204,19 +196,28 @@ function update_table() {
       url: "/batch_bydate",
       data: JSON.stringify({'batch':new_batch}),
          success: function (data) {
-            console.log(data);
-            for(var i=0; i<data.length;i++) {
+            batch_locations = data;
+            console.log(batch_locations);
+            for(var i=0; i<batch_locations.length;i++) {
                $("#table_registered").append(`
                   <tr>
-                     <td>${data[i].ScanDate}</td>
-                     <td>${data[i].Barcode}</td>
-                     <td>${data[i].Location}</td>
+                     <td>${batch_locations[i].ScanDate}</td>
+                     <td>${batch_locations[i].Barcode}</td>
+                     <td>${batch_locations[i].Location}</td>
                   </tr>
                `)
             }
          },
       dataType: "json"
    });
+}
+
+function location_exist(location) {
+   for(var i=0; i<batch_locations.length;i++) {
+      if (location == batch_locations[i].Location)
+         return true;
+   }
+   return false;
 }
 
 function update_fields() {
@@ -285,5 +286,4 @@ $(document).ready(function() {
     }
    });
    transition(STATE.USER);
-   setInterval(session_timeout_update, 1000);
 })

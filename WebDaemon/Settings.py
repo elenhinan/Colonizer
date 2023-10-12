@@ -70,7 +70,8 @@ _defaults = {
 		'user_min'    : 4,
 		'user_max'    : 8,
 		'timeout'     : 300,
-		'testserver'  : 'False'
+		'testserver'  : 'False',
+		'datapath'    : ''
 	},
 	'users': {
 		'admin'       : 'admin'

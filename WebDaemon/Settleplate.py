@@ -20,7 +20,7 @@ class Settleplate(db.Model):
 	Batch = db.Column(db.TEXT(128))
 	# deferred so only loaded when accessed, not when queried
 	Image = deferred(db.Column(db.LargeBinary))
-	Colonies = deferred(db.Column(db.LargeBinary))
+	Colonies = db.Column(db.LargeBinary)
 	Exported = db.Column(db.BINARY(1))
 
 	def __init__(self, **kwargs):
@@ -41,5 +41,11 @@ class SettleplateForm(FlaskForm):
 	Counts = IntegerField('Counts')
 	Location = StringField('Location', [validators.DataRequired("Location needed")])
 	Batch = StringField('Batch', [validators.DataRequired("Batch# needed")])
+	Colonies = HiddenField('Colonies')
+
+	def validate_Colonies(form, field):
+		if type(field.data) is str:
+			field.data = field.data.encode('utf8')
+		return type(field.data) is bytes
 
 db.create_all()

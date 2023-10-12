@@ -1,0 +1,72 @@
+.img-overlay-wrap {
+   display: inline-block; /* <= shrinks container to image size */
+   transition: transform 150ms ease-in-out;
+ }
+ 
+ .img-overlay-wrap img { /* <= optional, for responsiveness */
+    display: block;
+    max-width: 800px;
+    height: auto;
+ }
+ 
+ .img-overlay-wrap svg {
+   position: absolute;
+   width: 100%;
+   height: 100%;
+   top: 0;
+   left: 0;
+ }
+
+.CFU {
+   opacity: 25%;
+   transition: opacity 0.3s;
+   cursor: pointer;
+}
+
+.CFU g {
+   pointer-events: bounding-box;
+}
+
+.CFU rect {
+   stroke: red;
+   stroke-width: 0.002;
+   fill: none;
+   pointer-events: all;
+   transition: stroke-width 0.3s;
+}
+
+.CFU text {
+   fill: white;
+   text-anchor: middle;
+   dominant-baseline: central;
+   font-weight: 700;
+   visibility: hidden;
+   pointer-events: none;
+   font-size: 0.02px;
+   opacity: 0%;
+   transition: opacity 0.3s, visibility 0.3s;
+}
+
+.CFU-positive {
+   opacity: 100%;
+}
+
+.CFU-positive rect {
+   stroke: greenyellow;
+}
+
+.CFU:hover {
+   opacity: 100%;
+   transition: opacity 0.3s;
+}
+
+.CFU:hover rect {
+   stroke-width: 0.004;
+   transition: stroke-width 0.3s;
+}
+
+.CFU:hover text {
+   visibility: visible;
+   opacity: 100%;
+   transition: opacity 0.3s, visibility 0.3s;
+}

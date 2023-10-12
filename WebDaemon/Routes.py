@@ -2,7 +2,6 @@
 import io
 import os
 from datetime import datetime, timedelta, date
-from calendar import monthrange
 from WebDaemon import app, db, hwclient
 from flask import render_template, request, jsonify, redirect, make_response, Response, session, url_for, g
 from WebDaemon.Settleplate import Settleplate, SettleplateForm
@@ -10,10 +9,14 @@ from WebDaemon.BarcodeParser import Decoder
 from WebDaemon.ImageTools import *
 from WebDaemon.Settings import settings, user_validator, SettingsForm
 
+# set session to permanent once
+@app.before_first_request
+def make_session_permanent():
+    session.permanent = True
 
+# Limit access and set admin flag
 @app.before_request
 def login_check(admin=False):
-	session.permanent = True
 	session.modified = True
 
 	if request.path.startswith(('/static/','/bootstrap/','/status')):
@@ -27,10 +30,12 @@ def login_check(admin=False):
 
 	#g.testserver = settings.getboolean('general','testserver')
 
+# default page
 @app.route('/')
 def index():
 	return redirect(request.base_url + "list")
 
+# Login dialog
 @app.route('/login', methods=['GET', 'POST'])
 def login():
 	error = ''
@@ -109,13 +114,8 @@ def capture():
 		# get parameters
 		crop = request.args.get('crop')
 		light = request.args.get('light')
-		#hdr = request.args.get('hdr')
-		#exp = request.args.get('exp')
 		debug = request.args.get('debug') != None
 
-		#if exp != None:
-		#	exp = float(exp)
-		
 		# turn on leds and capture image
 		leds_ring = (light == 'ring' or light == 'both')
 		leds_flash = (light == 'flash' or light == 'both')
@@ -138,7 +138,9 @@ def capture():
 			session['image_jpeg'] = to_jpg(image)
 			session['image_timestamp'] = datetime.now()
 		else:
+			session['image'] = None
 			session['image_jpeg'] = None
+			session['image_timestamp'] = None
 
 	# todo: check for valid image_jpeg
 	resp = make_response(session['image_jpeg'])
@@ -168,7 +170,7 @@ def save_image():
 			if params['ext'] == 'png':
 				img_out = to_png(session['image'])
 			elif params['ext'] == 'jpg':
-				img_out = to_jpg(session['image'])
+				img_out = session['image_jpeg']
 			app.logger.info('Saving image to: %s (%d kB)'%(filename,len(img_out)/1024))
 			f.write(img_out)
 	except Exception as error:
@@ -231,62 +233,6 @@ def list_settleplates():
 	settleplates = query.order_by(Settleplate.ScanDate.desc()).all()
 	return render_template('list.html', settleplates=settleplates, date_from=date_from, date_to=date_to, batch=batch)
 
-@app.route('/report', methods=['GET'])
-def generate_report():
-	# define search from request data
-	period = request.args.get('period', 52 , int)
-	year = request.args.get('year', datetime.now().year, int)
-
-	if period == 52: # week
-		def_number = datetime.now().date().isocalendar()[1]
-		week = request.args.get('number', def_number, int)
-		date_from = datetime.fromisocalendar(year,week,1)
-		date_to = datetime.fromisocalendar(year,week,7) + timedelta(days=1)
-		batch= "Miljøkontroll-Ukentlig"
-	elif period == 12: # month
-		def_number = datetime.now().month
-		month = request.args.get('number', def_number, int)
-		last_day = monthrange(year,month)[1]
-		date_from = datetime(year, month,1)
-		date_to = datetime(year, month, last_day)  + timedelta(days=1)
-		batch = "Miljøkontroll-Månedlig"
-	else: # quarter
-		def_number = int(np.ceil(datetime.now().month/3))
-		month = request.args.get('number', def_number, int)*3
-		last_day = monthrange(year,month)[1]
-		date_from = datetime(year,month-2,1)
-		date_to = datetime(year,month,last_day) + timedelta(days=1)
-		batch = "Miljøkontroll-Kvartalsvis"
-
-	#define query
-	query = db.session.query(Settleplate.Barcode)
-	query = query.filter(
-		Settleplate.Counts == -1,
-		Settleplate.ScanDate >= date_from,
-		Settleplate.ScanDate < date_to,
-		Settleplate.Batch.like(batch)
-	)
-	# get ID of all settleplates in report
-	settleplates = query.order_by(Settleplate.ScanDate.desc()).all()
-	app.logger.error(f'Queried "{batch}" between {date_from} and {date_to}, {len(settleplates)} retrieved')
-
-
-	# return	results and sort in dict
-	locations = []
-	for sp in settleplates:
-		locations.append(Settleplate.query.filter(Settleplate.Barcode.like(sp.Barcode)).order_by(Settleplate.ScanDate).all())
-
-	# for sp in query.order_by(Settleplate.ScanDate.desc()).all():
-	# 	if sp.Location not in locations:
-	# 		locations[sp.Location] = {}
-	# 	if sp.Barcode not in locations[sp.Location]:
-	# 		locations[sp.Location][sp.Barcode] = {}
-	# 	locations[sp.Location][sp.Barcode] = sp
-	# locations = [list(l.values()) for l in locations.values()]
-
-
-	return render_template('report.html', settleplates=locations, now=datetime.now())
-
 @app.route('/camera', methods=['get'])
 def camera():
 	return render_template('camera.html')
@@ -311,7 +257,7 @@ def get_batch_date():
 	batch_id = data['batch']
 	if len(batch_id):
 		limit=25
-		results = db.session.query(Settleplate.ScanDate, Settleplate.Barcode, Settleplate.Location).filter(Settleplate.Batch.like(batch_id), Settleplate.Exported==False).order_by(Settleplate.ScanDate.desc()).limit(limit).all()
+		results = db.session.query(Settleplate.ScanDate, Settleplate.Barcode, Settleplate.Location).filter(Settleplate.Batch.like(batch_id)).order_by(Settleplate.ScanDate.desc()).limit(limit).all()
 		if len(results):
 			response = [r._asdict() for r in results]
 			return jsonify(response)
@@ -351,18 +297,6 @@ def plate_info():
 	response['Timepoints'] = timepoints
 	return jsonify(response)
 
-@app.route('/scan_add_new', methods=['POST'])
-def scan_add_new():
-	data = request.get_json()
-	sp = Settleplate()
-	sp.Username = session['user']
-	sp.ScanDate = session['image_timestamp']
-	sp.Barcode = data['barcode']
-	sp.Counts = data['counts']
-	#print(add_scan_async(sp, session['image']))
-
-	return jsonify({'committed':True})
-
 @app.route('/scan_add', methods=['POST'])
 def scan_add():
 	data = request.get_json()
@@ -381,7 +315,8 @@ def scan_add():
 			sp.Counts = data['counts']
 			sp.Location = plateinfo.Location
 			sp.Batch = plateinfo.Batch
-			sp.Image = to_jpg(session['image'])
+			sp.Image = session['image_jpeg']
+			sp.Colonies = data['colonies'].encode('utf8')
 			try:
 				db.session.add(sp)
 				db.session.commit()
@@ -444,5 +379,5 @@ def status():
 	status['camera'] = hwclient.is_ready()
 
 	# check storage status
-	status['storage'] = False
+	status['storage'] = False #os.path.ismount(settings['general']['mountpoint'])
 	return jsonify(status)
