@@ -60,6 +60,5 @@ def is_ready():
         socket.send_json(request)
         response = socket.recv_json()
         return response['msg']
-        return response['msg'] == 'true'
     except Exception as e:
         return False

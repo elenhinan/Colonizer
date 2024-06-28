@@ -2,6 +2,14 @@ import numpy as np
 from abc import ABC, abstractmethod
 
 class BaseSettings(ABC):
+    @property
+    def flip(self): return self.flip
+    @flip.setter
+    def flip(self, horizontal:bool, vertical:bool):
+        self.flip = vertical
+        if horizontal:
+            self.flip = -self.flip
+
     @abstractmethod
     def load(self,json: dict) -> None:
         pass

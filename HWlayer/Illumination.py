@@ -4,71 +4,41 @@
 # Direct port of the Arduino NeoPixel library strandtest example.  Showcases
 # various animations on a strip of NeoPixels.
 import time
-import threading
+from threading import Thread, Event
 from enum import Enum
-try:
-	from neopixel import *
-except ImportError:
-	LED_STRIP = None
-else:
-	# LED strip configuration:
-	LED_PIN = board.D21  # GPIO pin connected to the pixels (must support PWM!).
-	LED_FREQ_HZ = 800000  # LED signal frequency in hertz (usually 800khz)
-	LED_DMA = 10  # DMA channel to use for generating signal (try 10)
-	LED_BRIGHTNESS = 255  # Set to 0 for darkest and 255 for brightest
-	LED_INVERT = False  # True to invert the signal (when using NPN transistor level shift)
-	LED_CHANNEL = 0
-	LED_STRIP = "RGBW"
+import board
+from neopixel_spi import NeoPixel_SPI
 
-LED_LINE = range(0, 7)  # line led 1 to 7
-LED_RING = range(7, 30) # ring led 8 to 30
-
-class IlluminationMode(Enum):
-	OFF = 0
-	IMAGING = 1
-	WAIT = 2
-	FAIL = 3
-	PASS = 4
-	DEMO = 5
+# LED strip configuration:
+LED_ORDER = "GRB"
+LED_RING = 24
+LED_LINE = 5
 
 class Illumination():
-	def __init__(self, app):
+	def __init__(self, app=None):
 
-		self.logger = app.logger
-		# Create NeoPixel object with appropriate configuration.
-		if LED_STRIP is None:
-			self.logger.error("NeoPixel library not found")
-			
-		self.n_leds = len(LED_LINE)+len(LED_RING)
-		self.strip = NeoPixel(LED_PIN, self.n_leds)
-
-		# Mode selection
-		self.mode = IlluminationMode.OFF
-		self.illuminating = False
-		self.function_mapping = {
-			IlluminationMode.IMAGING: lambda: self.color_fill(Color(255, 0 , 255, 48)),
-			IlluminationMode.WAIT: lambda: self.rainbow(wait_ms=10),
-			IlluminationMode.FAIL: lambda: self.color_wipe(Color(255, 0, 0, 0)),
-			IlluminationMode.PASS: lambda: self.color_wipe(Color(0, 255, 0, 0)),
-			IlluminationMode.DEMO: lambda: self.color_fill(Color(8, 8, 8, 8))
-		}
-
-	def Flash(self, onoff):
-		if onoff:
-			val = 255
+		if app:
+			self.logger = app.logger
 		else:
-			val = 0
-		for i in LED_LINE:
-			self.strip.setPixelColor(i, Color(val,val,val,val))
+			self.logger = None
+		# Create NeoPixel object with appropriate configuration.
+			
+		self.n_leds = LED_RING + LED_LINE
+		self.strip = NeoPixel_SPI(board.SPI(), self.n_leds, auto_write=False, bpp=len(LED_ORDER), pixel_order=LED_ORDER)
+
+		self._thread = None
+		self._thread_stop = Event()
+
+	def flood(self, color):
+		self.stop()
+		for i in range(LED_LINE):
+			self.strip[i+LED_RING] = color
 		self.strip.show()
 
-	def Ring(self, onoff):
-		if onoff:
-			val = 96
-		else:
-			val = 0
-		for i in LED_RING:
-			self.strip.setPixelColor(i, Color(val,val,val,val))
+	def ring(self, color):
+		self.stop()
+		for i in range(LED_RING):
+			self.strip[i] = color
 		self.strip.show()
 
 	# Define functions which animate LEDs in various ways.
@@ -76,53 +46,66 @@ class Illumination():
 	def wheel(pos):
 		"""Generate rainbow colors across 0-255 positions."""
 		if pos < 85:
-			return Color(pos * 3, 255 - pos * 3, 0)
+			return [pos * 3, 255 - pos * 3, 0]
 		elif pos < 170:
 			pos -= 85
-			return Color(255 - pos * 3, 0, pos * 3)
+			return [255 - pos * 3, 0, pos * 3]
 		else:
 			pos -= 170
-			return Color(0, pos * 3, 255 - pos * 3)
+			return [0, pos * 3, 255 - pos * 3]
 
-	def color_wipe(self, color, wait_ms=50):
+	def color_wipe(self, color, wait_ms=100):
+		self.stop()
+		self._thread = Thread(target=self._color_wipe, args=[color,wait_ms])
+		self._thread.start()
+
+	def _color_wipe(self, color, wait_ms):
 		"""Wipe color across display a pixel at a time."""
-		if LED_STRIP is None:
-			return
-		for i in range(self.strip.numPixels()):
-			self.strip.setPixelColor(i, color)
+		for i in range(LED_RING):
+			if self._thread_stop.is_set():
+				return
+			self.strip[i] = color
 			self.strip.show()
 			time.sleep(wait_ms / 1000.0)
 
-	def color_fill(self, color):
-		"""Wipe color across display a pixel at a time."""
-		if LED_STRIP is None:
-			return
-		for i in range(self.strip.numPixels()):
-			self.strip.setPixelColor(i, color)
-		self.strip.show()
+	def rainbow(self, wait_ms=10):
+		self.stop()
+		self._thread = Thread(target=self._rainbow, args=[wait_ms])
+		self._thread.start()
 
-	def rainbow(self, wait_ms=20):
+	def _rainbow(self, wait_ms):
 		"""Draw rainbow that uniformly distributes itself across all pixels."""
-		if LED_STRIP is None:
-			return
-		while self.illuminating:
+		while True:
 			for j in range(256):
-				for i in range(self.strip.numPixels()):
-					self.strip.setPixelColor(i, self.wheel(((i * 256 // self.strip.numPixels()) + j) & 255))
+				for i in range(LED_RING):
+					self.strip[i] = self.wheel(((i * 256 // LED_RING) + j) & 255)
 				self.strip.show()
 				time.sleep(wait_ms / 1000.0)
-
-	def close(self):
-		self.stop()
-
-	def run(self):
-		self.illuminating = False
-		self.wait()
-		self.logger.debug("Starting mode %s"%self.mode)
-		self.illuminating = True
-		self.function_mapping[self.mode]()
+				if self._thread_stop.is_set():
+					print('stopping rainbow')
+					return
 
 	def stop(self):
-		self.mode = IlluminationMode.OFF
-		self.color_fill(Color(0, 0, 0, 0))
-		self.wait()
+		if type(self._thread) is Thread:
+			if self._thread.is_alive():
+				self._thread_stop.set()
+				self._thread.join()
+			self._thread = None
+			self._thread_stop.clear()
+		self.strip.fill([0,0,0])
+		
+
+if __name__ == "__main__":
+	led = Illumination()
+	#led.ring([255,196,92])
+	print('test rainbow')
+	led.rainbow(10);
+	time.sleep(60)
+	print('test wipe')
+	led.color_wipe([92,0,12])
+	time.sleep(5)
+	print('test ring')
+	led.ring([92,92,92])
+	print('test stop')
+	led.stop()
+	

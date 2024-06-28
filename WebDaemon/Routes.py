@@ -10,9 +10,10 @@ from WebDaemon.ImageTools import *
 from WebDaemon.Settings import settings, user_validator, SettingsForm
 
 # set session to permanent once
-@app.before_first_request
+@app.before_request
 def make_session_permanent():
-    session.permanent = True
+	app.before_request_funcs[None].remove(make_session_permanent)
+	session.permanent = True
 
 # Limit access and set admin flag
 @app.before_request
@@ -142,15 +143,18 @@ def capture():
 			session['image_jpeg'] = None
 			session['image_timestamp'] = None
 
-	# todo: check for valid image_jpeg
-	resp = make_response(session['image_jpeg'])
-	resp.headers.set('Content-Type', 'image/jpeg')
-	resp.headers.set('Content-Disposition', 'attachment', capture='.jpg')
-	resp.headers.set("Cache-Control", "no-store")
-	resp.headers.set("Expires", '0')
-	resp.headers.set("Pragma", "no-cache")
-	return resp
-  
+	# check for valid image_jpeg
+	if session['image_jpeg'] is None:
+		return redirect("/static/settleplate.svg")
+	else:
+		resp = make_response(session['image_jpeg'])
+		resp.headers.set('Content-Type', 'image/jpeg')
+		resp.headers.set('Content-Disposition', 'inline', capture='.jpg')
+		resp.headers.set("Cache-Control", "no-store")
+		resp.headers.set("Expires", '0')
+		resp.headers.set("Pragma", "no-cache")
+		return resp
+ 
 
 @app.route('/save_image', methods=['POST'])
 def save_image():

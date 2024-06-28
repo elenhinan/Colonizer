@@ -7,12 +7,17 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
         {% block styles %}
-            <!-- Colonizer CSS -->
-            <link rel="stylesheet" href="{{ url_for('static', filename='local.css')}}">
-            <!-- Bootstrap CSS -->
+            <!-- CSS -->
+            <link rel="stylesheet" href="/static/local.css">
             {{ bootstrap.load_css() }}
+            <link rel="stylesheet" href="/static/fontawesome/css/all.css">
         {% endblock %}
-
+        <!-- FavIcon stuff-->
+        <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon/favicon-16x16.png">
+        <link rel="manifest" href="/static/favicon/site.webmanifest">
+        <!-- Title -->
         <title>{% block title %} Colonizer {% endblock %}</title>
         {% endblock %}
     </head>
@@ -21,9 +26,10 @@
         {% block content %}{% endblock %}
 
         {% block scripts %}
-            <!-- Optional JavaScript -->
+            <!-- JavaScript -->
             {{ bootstrap.load_js() }}
             <script src="/static/js/status.js"></script>
+            <script src="/static/fontawesome/js/all.js"></script>
         {% endblock %}
     </body>
 </html>

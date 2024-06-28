@@ -15,7 +15,7 @@ class _BarcodeParser():
 	def init_regexp(self):
 		self.regex_patterns.clear()
 		for pattern in ['user', 'batch', 'location', 'settleplate']:
-			for regex in settings['regex'][pattern].splitlines():
+			for regex in settings['regex'][pattern]:
 				#self.logger.debug("Compiling {p}: r'{r}'".format(p=pattern,r=regex))
 				self.regex_patterns.append(re.compile(regex))
 

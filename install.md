@@ -3,6 +3,11 @@ git clone git@github.com:elenhinan/Colonizer.git
 
 sudo apt install -y python3-pip python3-opencv
 sudo apt install -y unixodbc unixodbc-dev
+sudo apt install nginx
+
+ln -s /etc/nginx/sites-available/colonizer /etc/nginx/sites-enabled/colonizer
+rm /etc/nginx/sites-enabled/default
+
 pip install opencv-contrib-python
 pip install flask
 pip install bootstrap-flask
@@ -23,3 +28,5 @@ wget ftp://ftp.freetds.org/pub/freetds/stable/freetds-patched.tar.gz \
 && sudo make install \
 && cd samples \
 && sudo odbcinst -i -d -f unixodbc.freetds.driver.template
+
+sudo chown colonizer:www-data -R WebDaemon/static

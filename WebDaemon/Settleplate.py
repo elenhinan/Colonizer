@@ -1,5 +1,5 @@
 from datetime import datetime
-from WebDaemon import db
+from WebDaemon import db, app
 from sqlalchemy.orm import deferred
 from flask_wtf import FlaskForm
 from wtforms import StringField, DateTimeField, DateField, FloatField, IntegerField, validators, HiddenField, FieldList
@@ -48,4 +48,5 @@ class SettleplateForm(FlaskForm):
 			field.data = field.data.encode('utf8')
 		return type(field.data) is bytes
 
-db.create_all()
+with app.app_context():
+	db.create_all()

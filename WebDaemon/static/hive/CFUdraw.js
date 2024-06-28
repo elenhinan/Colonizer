@@ -67,8 +67,8 @@ let cfu_arr;
 var results;
 var model;
 var show_low = true;
-var threshold_low = 0.15;
-var threshold_high = 0.25
+var threshold_low = 0.20;
+var threshold_high = 0.35
 var overlay = $('#overlay');
 const labels = ['Unused', 'CFU', 'MultiCFU', 'Bubble', 'Dish']
 $('#counts').val(0);
