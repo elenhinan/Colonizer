@@ -3,7 +3,7 @@ import logging
 from io import BytesIO
 from picamera2 import Picamera2
 from libcamera import Transform, Rectangle
-from HWlayer.base import BaseCamera
+from hwlayer.base import BaseCamera
 
 class PiHQCamera2(BaseCamera):
 	def __init__(self):
@@ -24,6 +24,7 @@ class PiHQCamera2(BaseCamera):
 		self._last_active = 0
 		self._config_changed = True
 		self._control_changed = True
+		super().__init__()
 		
 	def ready_cam(self):
 		# check if configuration changed
@@ -56,19 +57,20 @@ class PiHQCamera2(BaseCamera):
 	def capture_array(self):
 		self.ready_cam()
 		self._logger.info(f"Capturing image {self._config['main']['size']}")
+		self.run_flash()
 		image = self._cam.capture_array()
+		self.stop_flash()
 		return image
 
 	def capture_jpeg(self):
 		self.ready_cam()
 		self._logger.info(f"Capturing image {self._config['main']['size']}")
 		stream = BytesIO()
+		self.run_flash()
 		self._cam.capture_file(stream, format='jpeg')        
+		self.stop_flash()
 		return stream.getbuffer().tobytes()
 			
-	def set_flash(self, flash):
-		pass
-	
 	def set_exposure(self, exp):
 		if exp is None:
 			return

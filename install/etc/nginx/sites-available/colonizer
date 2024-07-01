@@ -11,7 +11,7 @@ server {
    server_name _;
 
    location /static {
-      alias /app/Colonizer/WebDaemon/static/;
+      alias /app/Colonizer/webdaemon/static/;
    }
 
    location / {

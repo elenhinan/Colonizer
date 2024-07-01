@@ -2,7 +2,7 @@
 import cv2
 import numpy as np
 from ctypes import *
-from HWlayer.base import BaseCamera, BaseSettings
+from hwlayer.base import BaseCamera, BaseSettings
 try:
    from pyueye import ueye
    from pyueye.ueye import c_mem_p

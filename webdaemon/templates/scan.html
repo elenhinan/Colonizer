@@ -1,10 +1,8 @@
 {% extends "interface.html" %}
 {% block head %}
 	{{ super() }}
-	<script src="{{ url_for('static', filename='hive/tf.min.js')}}"></script>
-	<link rel="stylesheet" href="{{ url_for('static', filename='hive/CFUdetect.css')}}">
+	<link rel="stylesheet" href="/static/hive/CFUdetect.css">
 {% endblock %}
-{% from "bootstrap4/form.html" import form_errors %}
 {% block page_content %}
 <div class="row">
 	<div class="col mx-3">
@@ -99,7 +97,8 @@
 
 {% block scripts %}
 {{ super() }}
-<script src="{{ url_for('static', filename='js/scan.js')}}"></script>
-<script src="{{ url_for('static', filename='hive/CFUdraw.js')}}"></script>
-<script src="{{ url_for('static', filename='hive/CFUdetect.js')}}"></script>
+<script src="/static/tensorflow/tf.min.js"></script>
+<script src="/static/js/scan.js"></script>
+<script src="/static/hive/CFUdraw.js"></script>
+<script src="/static/hive/CFUdetect.js"></script>
 {% endblock %}

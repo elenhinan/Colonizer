@@ -8,9 +8,9 @@
 
         {% block styles %}
             <!-- CSS -->
-            <link rel="stylesheet" href="/static/local.css">
-            {{ bootstrap.load_css() }}
+            <link rel="stylesheet" href="static/bootstrap/css/bootstrap.css">
             <link rel="stylesheet" href="/static/fontawesome/css/all.css">
+            <link rel="stylesheet" href="/static/local.css">
         {% endblock %}
         <!-- FavIcon stuff-->
         <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png">
@@ -27,9 +27,10 @@
 
         {% block scripts %}
             <!-- JavaScript -->
-            {{ bootstrap.load_js() }}
+            <script src="/static/jquery/jquery.min.js"></script>
+            <script src="/static/bootstrap/js/bootstrap.min.js"></script>
+            <script src="/static/fontawesome/js/all.min.js"></script>
             <script src="/static/js/status.js"></script>
-            <script src="/static/fontawesome/js/all.js"></script>
         {% endblock %}
     </body>
 </html>

@@ -1,6 +1,6 @@
 import re
 from datetime import datetime
-from WebDaemon.Settings import settings
+from webdaemon.settings import settings
 
 class _BarcodeParser():
 

@@ -4,7 +4,7 @@
 # Direct port of the Arduino NeoPixel library strandtest example.  Showcases
 # various animations on a strip of NeoPixels.
 import time
-from threading import Thread, Event
+from threading import Thread, Event, Timer
 from enum import Enum
 import board
 from neopixel_spi import NeoPixel_SPI
@@ -28,18 +28,26 @@ class Illumination():
 
 		self._thread = None
 		self._thread_stop = Event()
+		self._busy = False
+		self._timer = Timer(0, self.stop)
 
-	def flood(self, color):
+	def flood(self, color, duration:float=0):
 		self.stop()
 		for i in range(LED_LINE):
 			self.strip[i+LED_RING] = color
 		self.strip.show()
+		if duration > 0:
+			self._timer.interval = duration
+			self._timer.start()
 
-	def ring(self, color):
+	def ring(self, color, duration:float=0):
 		self.stop()
 		for i in range(LED_RING):
 			self.strip[i] = color
 		self.strip.show()
+		if duration > 0:
+			self._timer.interval = duration
+			self._timer.start()
 
 	# Define functions which animate LEDs in various ways.
 	@staticmethod
@@ -68,7 +76,7 @@ class Illumination():
 			self.strip.show()
 			time.sleep(wait_ms / 1000.0)
 
-	def rainbow(self, wait_ms=10):
+	def rainbow(self, wait_ms=10, duration=0):
 		self.stop()
 		self._thread = Thread(target=self._rainbow, args=[wait_ms])
 		self._thread.start()
@@ -86,6 +94,7 @@ class Illumination():
 					return
 
 	def stop(self):
+		self._timer.cancel()
 		if type(self._thread) is Thread:
 			if self._thread.is_alive():
 				self._thread_stop.set()
@@ -94,6 +103,7 @@ class Illumination():
 			self._thread_stop.clear()
 		self.strip.fill([0,0,0])
 		
+illumination = Illumination()
 
 if __name__ == "__main__":
 	led = Illumination()

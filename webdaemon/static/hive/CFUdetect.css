@@ -29,7 +29,7 @@
 
 .CFU rect {
    stroke: red;
-   stroke-width: 0.002;
+   stroke-width: 0.003;
    fill: none;
    pointer-events: all;
    transition: stroke-width 0.3s;
@@ -61,7 +61,7 @@
 }
 
 .CFU:hover rect {
-   stroke-width: 0.004;
+   stroke-width: 0.005;
    transition: stroke-width 0.3s;
 }
 

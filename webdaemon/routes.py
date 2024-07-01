@@ -2,12 +2,15 @@
 import io
 import os
 from datetime import datetime, timedelta, date
-from WebDaemon import app, db, hwclient
+from webdaemon import app
 from flask import render_template, request, jsonify, redirect, make_response, Response, session, url_for, g
-from WebDaemon.Settleplate import Settleplate, SettleplateForm
-from WebDaemon.BarcodeParser import Decoder
-from WebDaemon.ImageTools import *
-from WebDaemon.Settings import settings, user_validator, SettingsForm
+import hwlayer.client
+from webdaemon.model import Settleplate, SettleplateForm
+from webdaemon.database import db
+from webdaemon.barcodeparser import Decoder
+from webdaemon.imagetools import *
+from webdaemon.settings import settings, user_validator, SettingsForm
+from webdaemon.status import servicemonitor
 
 # set session to permanent once
 @app.before_request
@@ -20,7 +23,7 @@ def make_session_permanent():
 def login_check(admin=False):
 	session.modified = True
 
-	if request.path.startswith(('/static/','/bootstrap/','/status')):
+	if request.path.startswith(('/static/','/status')):
 		return
 
 	if session.get('user') is None and request.endpoint not in ['login', 'logout']:
@@ -121,7 +124,7 @@ def capture():
 		leds_ring = (light == 'ring' or light == 'both')
 		leds_flash = (light == 'flash' or light == 'both')
 		
-		success, image = hwclient.capture_image()
+		success, image = hwlayer.client.capture_image()
 
 		if success:
 			# process image
@@ -369,19 +372,4 @@ def settings():
 
 @app.route('/status', methods=(['GET']))
 def status():
-	status = {}
-
-	# check sql status
-	try:
-		db.session.execute('SELECT 1')
-	except:
-		status['sql'] = False
-	else:
-		status['sql'] = True
-
-	# check camera status
-	status['camera'] = hwclient.is_ready()
-
-	# check storage status
-	status['storage'] = False #os.path.ismount(settings['general']['mountpoint'])
-	return jsonify(status)
+	return jsonify(servicemonitor.status)
