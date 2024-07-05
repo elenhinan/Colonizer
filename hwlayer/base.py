@@ -45,10 +45,10 @@ class BaseCamera(ABC):
 		pass
 	def set_flash(self, flash = None):
 		if flash == 'ring':
-			self.run_flash = lambda : illumination.ring([255,255,128], 5)
+			self.run_flash = lambda : illumination.ring([255,255,128])
 		elif flash == 'flood':
-			self.run_flash = lambda : illumination.flood([255,255,128], 5)
+			self.run_flash = lambda : illumination.flood([255,255,128])
 		else:
 			self.run_flash = lambda : None
-	def stop_flash():
+	def stop_flash(self):
 		illumination.stop()

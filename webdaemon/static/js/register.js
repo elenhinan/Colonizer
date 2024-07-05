@@ -1,4 +1,3 @@
-var new_user;
 var new_batch;
 var new_serial;
 var new_lotno;
@@ -15,7 +14,6 @@ const GLYPH = {
 const STATE = {
    RESET:    'reset',
    BATCH:    'batch',
-   USER:     'user',
    SERIAL:   'serial',
    LOCATION: 'location',
    REGISTER: 'register',
@@ -28,29 +26,21 @@ function transition(new_state) {
    console.log(`New state: ${new_state}`);
    switch(new_state) {
       default:
-      case STATE.USER:
-         new_user=null;
+
+      case STATE.BATCH:
          new_batch=null;
          new_serial=null;
          new_lotno=null;
          new_location=null;
          text_input = "";
          $("#barcode").val(text_input);
+         $("#duplicate").slideUp();
          update_fields();
          update_table();
-         $("#duplicate").slideUp();
-         set_glyph($("#user_glyph"),GLYPH.ACTIVE);
-         set_glyph($("#batch_glyph"),GLYPH.WAIT);
+         set_glyph($("#batch_glyph"),GLYPH.ACTIVE);
          set_glyph($("#lotno_glyph"),GLYPH.WAIT);
          set_glyph($("#location_glyph"),GLYPH.WAIT);
          set_glyph($("#input_glyph"),GLYPH.ACTIVE);
-         state=STATE.USER;
-         break;
-
-      case STATE.BATCH:
-         update_fields();
-         set_glyph($("#user_glyph"),GLYPH.PASS);
-         set_glyph($("#batch_glyph"),GLYPH.ACTIVE);
          state=STATE.BATCH;
          break;
 
@@ -85,16 +75,6 @@ function transition(new_state) {
 
 function process_input(data) {
    switch(state) {
-      case STATE.USER:
-         if("user" in data) {
-            new_user = data.user;
-            input_pass();
-            transition(STATE.BATCH);
-         } else {
-            input_fail();
-         }
-         break;
-
       case STATE.BATCH:
          if("batch" in data) {
             new_batch = data.batch;
@@ -118,6 +98,12 @@ function process_input(data) {
                else new_lotno = data.serial;
                input_pass();
                transition(STATE.LOCATION);
+            }
+            if(data.expire < 0) {
+               $("#expired-plate").slideUp();
+            } else {
+               $("#expired-plate").slideDown();
+               $("#expire-date").innerText = data.expire;
             }
          } else {
             input_fail();
@@ -158,33 +144,13 @@ function input_fail() {
 }
 
 function set_glyph(glyph, state) {
-   switch(state) {
-      case GLYPH.WAIT:
-         glyph.toggleClass('fa-question-circle', true);
-         glyph.toggleClass('fa-check-circle', false);
-         glyph.toggleClass('fa-exclamation-circle', false);
-         glyph.css("color", "grey");
-         break;
-      case GLYPH.ACTIVE:
-         glyph.toggleClass('fa-question-circle', true);
-         glyph.toggleClass('fa-check-circle', false);
-         glyph.toggleClass('fa-exclamation-circle', false);
-         glyph.css("color", "blue");
-         break;
-      case GLYPH.PASS:
-         glyph.toggleClass('fa-question-circle', false);
-         glyph.toggleClass('fa-check-circle', true);
-         glyph.toggleClass('fa-exclamation-circle', false);
-         glyph.css("color", "green");
-         break;
-      case GLYPH.FAIL:
-         glyph.toggleClass('fa-question-circle', false);
-         glyph.toggleClass('fa-check-circle', false);
-         glyph.toggleClass('fa-exclamation-circle', true);
-         glyph.css("color", "red");
-         break;
-      default:
-   }
+   glyph.toggleClass('fa-question-circle', state == GLYPH.WAIT);
+   glyph.toggleClass('fa-check-circle', state == GLYPH.PASS);
+   glyph.toggleClass('fa-exclamation-circle', state == GLYPH.FAIL);
+   glyph.toggleClass('glyph-wait', state == GLYPH.WAIT);
+   glyph.toggleClass('glyph-active', state == GLYPH.ACTIVE);
+   glyph.toggleClass('glyph-pass', state == GLYPH.PASS);
+   glyph.toggleClass('glyph-fail', state == GLYPH.PASS);
 }
 
 function update_table() {
@@ -221,19 +187,18 @@ function location_exist(location) {
 }
 
 function update_fields() {
-   $("#user").val(new_user);
    $("#lotno").val(new_lotno);
    $("#location").val(new_location);
    $("#batch").val(new_batch);
 }
 
 function register_new() {
-   if(new_user != null && new_batch != null && new_serial != null && new_location != null) {
+   if(new_batch != null && new_serial != null && new_location != null) {
       $.ajax({
          type: "POST",
          contentType: "application/json; charset=utf-8",
          url: "/register_new",
-         data: JSON.stringify({user:new_user, batch:new_batch, serial:new_serial, location:new_location}),
+         data: JSON.stringify({batch:new_batch, serial:new_serial, location:new_location}),
             success: function (data) {
                console.log(data);
                setTimeout(function() {
@@ -285,5 +250,5 @@ $(document).ready(function() {
        return false;
     }
    });
-   transition(STATE.USER);
+   transition(STATE.BATCH);
 })

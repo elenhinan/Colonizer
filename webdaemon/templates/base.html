@@ -8,9 +8,17 @@
 
         {% block styles %}
             <!-- CSS -->
-            <link rel="stylesheet" href="static/bootstrap/css/bootstrap.css">
+            <!--link rel="stylesheet" href="/static/bootstrap/css/bootstrap.css"-->
+            <link rel="stylesheet" href="/static/css/bootstrap_themed.css"-->
             <link rel="stylesheet" href="/static/fontawesome/css/all.css">
-            <link rel="stylesheet" href="/static/local.css">
+            <link rel="stylesheet" href="/static/css/colonizer.css">
+        {% endblock %}
+        {% block scripts %}
+            <!-- JavaScript -->
+            <script src="/static/jquery/jquery.min.js"></script>
+            <script src="/static/js/status.js"></script>
+            <script src="/static/bootstrap/js/bootstrap.min.js"></script>
+            <script src="/static/fontawesome/js/all.min.js"></script>
         {% endblock %}
         <!-- FavIcon stuff-->
         <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png">
@@ -24,13 +32,5 @@
     <body>
         <!-- Your page content -->
         {% block content %}{% endblock %}
-
-        {% block scripts %}
-            <!-- JavaScript -->
-            <script src="/static/jquery/jquery.min.js"></script>
-            <script src="/static/bootstrap/js/bootstrap.min.js"></script>
-            <script src="/static/fontawesome/js/all.min.js"></script>
-            <script src="/static/js/status.js"></script>
-        {% endblock %}
     </body>
 </html>

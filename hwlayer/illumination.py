@@ -8,11 +8,13 @@ from threading import Thread, Event, Timer
 from enum import Enum
 import board
 from neopixel_spi import NeoPixel_SPI
+#from neopixel import NeoPixel
 
 # LED strip configuration:
 LED_ORDER = "GRB"
 LED_RING = 24
-LED_LINE = 5
+LED_TOP = 45
+LED_OFF = [0,0,0]
 
 class Illumination():
 	def __init__(self, app=None):
@@ -23,18 +25,26 @@ class Illumination():
 			self.logger = None
 		# Create NeoPixel object with appropriate configuration.
 			
-		self.n_leds = LED_RING + LED_LINE
+		self.n_leds = LED_RING + LED_TOP
 		self.strip = NeoPixel_SPI(board.SPI(), self.n_leds, auto_write=False, bpp=len(LED_ORDER), pixel_order=LED_ORDER)
+		#self.strip = NeoPixel(board.D10, self.n_leds, auto_write=False, bpp=len(LED_ORDER), pixel_order=LED_ORDER)
+		self.segment = {
+			'ring' : range(0,LED_RING),
+			'top'  : range(LED_RING,LED_RING+LED_TOP)
+		}
 
 		self._thread = None
 		self._thread_stop = Event()
 		self._busy = False
 		self._timer = Timer(0, self.stop)
 
-	def flood(self, color, duration:float=0):
+	def top(self, color, duration:float=0):
 		self.stop()
-		for i in range(LED_LINE):
-			self.strip[i+LED_RING] = color
+		for i in range(self.n_leds):
+			if i in self.segment['top']:
+				self.strip[i] = color
+			else:
+				self.strip[i] = LED_OFF
 		self.strip.show()
 		if duration > 0:
 			self._timer.interval = duration
@@ -42,8 +52,11 @@ class Illumination():
 
 	def ring(self, color, duration:float=0):
 		self.stop()
-		for i in range(LED_RING):
-			self.strip[i] = color
+		for i in range(self.n_leds):
+			if i in self.segment['ring']:
+				self.strip[i] = color
+			else:
+				self.strip[i] = LED_OFF
 		self.strip.show()
 		if duration > 0:
 			self._timer.interval = duration
@@ -94,7 +107,8 @@ class Illumination():
 					return
 
 	def stop(self):
-		self._timer.cancel()
+		if self._timer.is_alive:
+			self._timer.cancel()
 		if type(self._thread) is Thread:
 			if self._thread.is_alive():
 				self._thread_stop.set()
@@ -110,7 +124,7 @@ if __name__ == "__main__":
 	#led.ring([255,196,92])
 	print('test rainbow')
 	led.rainbow(10);
-	time.sleep(60)
+	time.sleep(10)
 	print('test wipe')
 	led.color_wipe([92,0,12])
 	time.sleep(5)

@@ -1,0 +1,56 @@
+/* CSS HEX */
+.label-text {
+  width: 140px;
+}
+@media print {
+  .noprint {
+    display:none;
+  }
+}
+tr.table-subheader td{
+  background-color: rgb(240,240,240) !important;
+}
+
+.status {
+  visibility: hidden;
+  color: #c6c5b9ff;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.status-online {
+  visibility: visible;
+  color: #c6c5b9ff;
+}
+
+.status-offline {
+  visibility: visible;
+  color: rgb(218, 104, 100);
+}
+
+.table {
+  overflow: hidden;
+  border-radius: 0.25rem;
+  border-spacing: 0px;
+  border-collapse: separate;
+}
+
+.table td {
+  border-top: 0px;
+}
+
+.glyph-fail {
+  
+}
+
+.glyph-active {
+  
+}
+
+.glyph-pass {
+  
+}
+
+.glyph-wait {
+  
+}

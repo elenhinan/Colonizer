@@ -2,73 +2,79 @@
 const image_placeholder = "/static/settleplate.svg"
 const image_norefresh = "/images/live?norefresh"
 const image_capture = "/images/live?crop=ring&light=ring"
-$(document).ready(init_page);
-$("#clear").click(init_page);
 
-// zoom in on image on click
-$("#image").click(function () {
-   if ($(this).attr("src") == image_capture) {
-      $("#imagemodal").modal('show');
-   }
-});
-// when new image loaded, update imagezoom
-$("#image").on('load', function() {
-   if ($(this).attr("src") == image_capture) {
-      $("#imagezoom").attr("src", image_norefresh);
-   }
-})
+$(document).ready(function() {
+   init_page();
 
-// refresh image on button click
-$("#refresh").click(function () {
-   $("#image").attr("src", image_capture);
-   $("#counts").focus();
-   $("#counts").attr("readonly", false);
-});
+   // set up events
+   $("#clear").click(init_page);
 
-//$("#image").load(function () {
-//});
-
-$("#counts").change(function () {
-   $("#refresh").attr("disabled", true);
-   $("#commit").attr("disabled", false);
-   $("#commit").focus();
-});
-
-// commit image to db on click
-$("#commit").click(function () {
-   $("#commit").attr("disabled", true);
-   $("#counts").attr('readonly', true);
-   $("#commit").blur();
-   $("#commit_wait").slideDown();
-   $.ajax({
-      type: "POST",
-      contentType: "application/json; charset=utf-8",
-      url: "/scan_add",
-      data: JSON.stringify({ barcode: $("#barcode").val(), counts: $("#counts").val() }),
-      success: function (data) {
-         console.log(data);
-         $("#commit_wait").slideUp();
-         if (data.committed == true) {
-            $("#commit_fail").slideUp();
-            $("#commit_ok").html(`<strong>Success!</strong> Image commitd to DB`)
-            $("#commit_ok").slideDown();
-            table_append(data.ID, data.dT, data.Counts);
-            setTimeout(init_page, 3000);
-         } else {
-            $("#commit_ok").slideUp();
-            $("#commit_fail").slideDown();
-         }
-         slideup_all();
-      },
-      dataType: "json"
+   // zoom in on image on click
+   $("#image").click(function () {
+      if ($(this).attr("src") == image_capture) {
+         $("#imagemodal").modal('show');
+      }
    });
-   
+   // when new image loaded, update imagezoom
+   $("#image").on('load', function() {
+      if ($(this).attr("src") == image_capture) {
+         $("#imagezoom").attr("src", image_norefresh);
+      }
+   })
+
+   // refresh image on button click
+   $("#refresh").click(function () {
+      $("#image").attr("src", image_capture);
+      $("#counts").focus();
+      $("#counts").attr("readonly", false);
+   });
+
+   //$("#image").load(function () {
+   //});
+
+   $("#counts").change(function () {
+      $("#refresh").attr("disabled", true);
+      $("#commit").attr("disabled", false);
+      $("#commit").focus();
+   });
+
+   // commit image to db on click
+   $("#commit").click(function () {
+      $("#commit").attr("disabled", true);
+      $("#counts").attr('readonly', true);
+      $("#commit").blur();
+      $("#commit_wait").slideDown();
+      $.ajax({
+         type: "POST",
+         contentType: "application/json; charset=utf-8",
+         url: "/scan_add",
+         data: JSON.stringify({ barcode: $("#barcode").val(), counts: $("#counts").val() }),
+         success: function (data) {
+            console.log(data);
+            $("#commit_wait").slideUp();
+            if (data.committed == true) {
+               $("#commit_fail").slideUp();
+               $("#commit_ok").html(`<strong>Success!</strong> Image commitd to DB`)
+               $("#commit_ok").slideDown();
+               table_append(data.ID, data.dT, data.Counts);
+               setTimeout(init_page, 3000);
+            } else {
+               $("#commit_ok").slideUp();
+               $("#commit_fail").slideDown();
+            }
+            slideup_all();
+         },
+         dataType: "json"
+      });
+      
+   });
 });
 
 function slideup_all() {
    setTimeout(function () {
       $("#commit_ok").slideUp();
       $("#commit_fail").slideUp();
+      $("#sameuser_error").slideUp();
    }, 3000);
 }
 
@@ -119,6 +125,9 @@ function plate_info() {
             $("#table_timepoints").empty();
             for (var i = 0; i < data.Timepoints.length; i++) {
                table_append(data.Timepoints[i].ID, data.Timepoints[i].dT, data.Timepoints[i].Counts);
+            }
+            if (data.SameUser) {
+               $("#sameuser_error").slideDown();
             }
          }
          //$("#loading").modal('hide')

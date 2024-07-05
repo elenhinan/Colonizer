@@ -37,10 +37,12 @@ wget -nv ftp://ftp.freetds.org/pub/freetds/stable/freetds-patched.tar.gz \
 && sudo odbcinst -i -d -f unixodbc.freetds.driver.template
 
 # install bootstrap 4.6
-cd /tmp
-wget -nv https://github.com/twbs/bootstrap/releases/download/v4.6.2/bootstrap-4.6.2-dist.zip
-unzip bootstrap-4.6.2-dist.zip
-mv bootstrap-4.6.2-dist /app/Colonizer/webdaemon/static/bootstrap
+BOOTSTRAP_DIR=/app/Colonizer/webdaemon/static/jquery
+mkdir -p $BOOTSTRAP_DIR
+wget https://github.com/twbs/bootstrap/archive/v4.6.2.zip
+unzip v4.6.2.zip
+cp -r bootstrap-4.6.2/dist/* $BOOTSTRAP_DIR
+cp -r bootstrap-4.6.2/scss $BOOTSTRAP_DIR
 
 # install jquery
 JQUERY_DIR=/app/Colonizer/webdaemon/static/jquery
@@ -60,6 +62,16 @@ TF_DIR=/app/Colonizer/webdaemon/static/tensorflow
 mkdir -p $TF_DIR
 wget -nv https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9/dist/tf.min.js -P $TF_DIR
 wget -nv https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9/dist/tf.min.js.map -P $TF_DIR
+
+# install sass
+cd /tmp
+wget https://github.com/sass/dart-sass/releases/download/1.77.5/dart-sass-1.77.5-linux-arm64.tar.gz
+unzip dart-sass-1.77.5-linux-arm64.tar.gz
+mv dart-sass /app/Colonizer/sass
+
+# compile css
+cd /app/Colonizer/webdaemon/static
+/app/Colonizer/sass/sass scss/bs_theme.scss css/bootstrap_themed.css
 
 # create folder for smb share
 mkdir -p /mnt/data

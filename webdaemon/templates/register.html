@@ -8,6 +8,19 @@
 			<div class="input-group-prepend">
 				<label class="input-group-text" style="width: 90px;">Lot/No</label>
 			</div>
+			<input type="text" class="form-control" id="batch" readonly placeholder="&lt;batch&gt;">
+			<div class="input-group-append">
+					<div class="input-group-text"><i class="fa" id="batch_glyph"></i></div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="row">
+	<div class="col form-group">
+		<div class="input-group">
+			<div class="input-group-prepend">
+				<label class="input-group-text" style="width: 90px;">Lot/No</label>
+			</div>
 			<input type="text" class="form-control" id="lotno" readonly placeholder="&lt;lotno&gt;">
 			<div class="input-group-append">
 					<div class="input-group-text"><i class="fa" id="lotno_glyph"></i></div>
@@ -34,8 +47,11 @@
 <div class="alert alert-danger" id="duplicate-location" style="display: none;">
 	<strong>Error!</strong> Location already in database.
 </div>
+<div class="alert alert-danger" id="expired-plate" style="display: none;">
+	<strong>Warning!</strong> Settleplate passed expire date.<div id="expire-date"></div>
+</div>
 
-<table class="table table-striped">
+<table class="table table-sm table-striped">
 	<thead class="thead-light">
 		<tr>
 			<th scope="col">Time</th>

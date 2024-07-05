@@ -278,7 +278,7 @@ def plate_info():
 		return jsonify({'error':'missing serial'})
 	
 	# query for registration
-	query = db.session.query(Settleplate.ScanDate, Settleplate.Location, Settleplate.Batch)
+	query = db.session.query(Settleplate.ScanDate, Settleplate.Location, Settleplate.Batch, Settleplate.Username)
 	filters = query.filter(Settleplate.Barcode.like(barcode), Settleplate.Counts == -1)
 	try:
 		plateinfo = filters.one()
@@ -301,6 +301,8 @@ def plate_info():
 
 	# return plate info and scan times
 	response = plateinfo._asdict()
+	# check if user scanning plate is same as user registering, and check if settings allow this
+	response['SameUser'] = (g.username == plateinfo.Username) and settings.sameuser
 	response['Timepoints'] = timepoints
 	return jsonify(response)
 
@@ -343,10 +345,10 @@ def commit_new():
 	data = request.get_json()
 	data.update(Decoder.parse_input(data['serial'])) # parse serial and add result to data dictionary
 		
-	required = ['user', 'batch', 'serial', 'location']
+	required = ['batch', 'serial', 'location']
 	if all([k in data for k in required]):
 		new_sp = Settleplate()
-		new_sp.Username = data['user']
+		new_sp.Username = g.username
 		new_sp.Batch = data['batch']
 		new_sp.Barcode = data['serial']
 		new_sp.Location = data['location']

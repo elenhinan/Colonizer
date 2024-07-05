@@ -69,7 +69,8 @@ _defaults = {
 		'user_max'    : 8,
 		'timeout'     : 300,
 		'database'    : 'Test',
-		'mountpoint'  : '/mnt/data'
+		'mountpoint'  : '/mnt/data',
+		'sameuser'    : True
 	},
 	'users': {
 		'admin'       : 'admin'

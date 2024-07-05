@@ -30,6 +30,5 @@ class ServiceMonitor(Timer):
 
 		# check storage status
 		self.status['storage'] = os.path.ismount(settings['general']['mountpoint'])
-		print(self.status)
 
 servicemonitor = ServiceMonitor()

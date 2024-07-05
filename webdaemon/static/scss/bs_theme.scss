@@ -1,0 +1,33 @@
+// Custom bootstrap theme for Colonizer
+
+/* SCSS HEX */
+$onyx: #393d3fff;
+$white: #fdfdffff;
+$silver: #c6c5b9ff;
+$blue-munsell: #62929eff;
+$paynes-gray: #546a7bff;
+
+
+// 
+$body-bg: $paynes-gray;
+$body-color: $white;
+
+$navbar-dark-color:         $silver;
+$navbar-dark-hover-color:   $silver;
+$input-group-addon-bg:      $blue-munsell;
+$input-group-addon-color:   $white;
+$input-group-addon-border-color: $blue-munsell;
+$table-head-color:          $white;
+$table-head-bg:             $blue-munsell;
+$table-color:               $paynes-gray;
+$table-border-color:        $blue-munsell;
+
+$theme-colors: (
+  "primary":$blue-munsell,
+  "secondary": $paynes-gray,
+  "light": $white,
+  "dark": $onyx,
+  "info": $blue-munsell,
+);
+
+@import "../bootstrap/scss/bootstrap";

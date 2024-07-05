@@ -33,9 +33,9 @@
 				<input type="text" class="form-control" id="location" readonly placeholder="">
 			</div>
 		</div>
-		<div class="row">
+		<div class="row mb-3">
 			<table class="table table-sm table-striped">
-				<thead>
+				<thead class="thead-light">
 					<tr>
 						<th scope="col">ID</th>
 						<th scope="col">&Delta;T (Hours)</th>
@@ -45,6 +45,11 @@
 				<tbody id="table_timepoints">
 				</tbody>
 			</table>
+		</div>
+		<div class="row">
+			<div class="row alert alert-danger" id="sameuser_error" style="display: none;">
+				<strong>Warning!</strong> Same user scanning as registering plate!
+			</div>
 		</div>
 	</div>
 	<div class="col mx-3">
@@ -69,15 +74,13 @@
 				</div>
 			</div>
 		</div>
-		<div class="row">
+		<div class="row mt-3">
 			<div class="row alert alert-warning" id="commit_wait" style="display: none;">
 				<strong>Please wait!</strong> Committing image to DB
 			</div>
-
 			<div class="row alert alert-danger" id="commit_fail" style="display: none;">
 				<strong>Error!</strong> Failed to commit image to DB
 			</div>
-
 			<div class="row alert alert-success" id="commit_ok" style="display: none;">
 				<strong>Success!</strong> Image committed to DB
 			</div>
