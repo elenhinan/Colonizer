@@ -109,7 +109,7 @@ def autocrop_rect_hdr(hdr_series):
 		img_landscape = auto_landscape(img_out)
 		return img_landscape, True
 
-def autocrop_ring(img_org):
+def autocrop_ring(img_org, color=(0,0,0)):
 	# reduce image size for speed
 	factor = 8
 
@@ -129,9 +129,9 @@ def autocrop_ring(img_org):
 	
 	# get circle parameters and scale to full size
 	(mask_x, mask_y), mask_r = cv2.minEnclosingCircle(edges)
-	mask_x = int(mask_x * factor)
-	mask_y = int(mask_y * factor)
-	mask_r = int(mask_r * factor)
+	mask_x = int(mask_x * factor+0.5)
+	mask_y = int(mask_y * factor+0.5)
+	mask_r = int(mask_r * factor+0.5)
 
 	x1 = max(mask_x-mask_r, 0)
 	x2 = min(mask_x+mask_r, img_org.shape[0])
@@ -149,9 +149,9 @@ def autocrop_ring(img_org):
 	if rel_r < min_radius:
 		return img_org, False
 	
-	# set pizels outside circle to black
+	# set pizels outside circle to color
 	mask = np.zeros_like(img_org)
-	cv2.circle(mask, (mask_y, mask_x), mask_r, (255,255,255), -1)
+	cv2.circle(mask, (mask_y, mask_x), mask_r, color, -1)
 	img_out = cv2.bitwise_and(img_org, mask)
 	img_out = img_out[x1:x2, y1:y2]
 

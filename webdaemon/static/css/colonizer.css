@@ -39,6 +39,10 @@ tr.table-subheader td{
   border-top: 0px;
 }
 
+.login-form button {
+  text-align: left;
+}
+
 .glyph-fail {
   
 }

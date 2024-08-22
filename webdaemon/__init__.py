@@ -1,30 +1,32 @@
 #!/usr/bin/env python3
-import os
-import pyodbc
-import datetime
+import logging
+from redis import Redis
 from flask import Flask
 from flask_session import Session
-from webdaemon.settings import settings
+from settings import settings, get_secret
 from webdaemon.status import servicemonitor
 from webdaemon.database import init_database
 import hwlayer.client as hwclient
 
 # create flask app
 app = Flask(__name__)
+app.logger.setLevel(logging.INFO)
+
+# load settings
+settings.init('testing')
 
 # config
-app.config.update(
-	SECRET_KEY = os.urandom(32),
-	SQLALCHEMY_TRACK_MODIFICATIONS = False
-)
+app.config['SECRET_KEY'] = get_secret(),
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False,
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 
 # Enable session
 app.logger.info('Setting up local session storage...')
-app.config.update(
-	SESSION_TYPE = 'filesystem',
-	SESSION_COOKIE_SAMESITE = "Strict"
-	#PERMANENT_SESSION_LIFETIME = datetime.timedelta(seconds=settings['general']['timeout'])
-)
+app.config['SESSION_TYPE'] = 'redis'
+app.config['SESSION_REDIS'] = Redis(host='localhost', port=6379)
+app.config['SESSION_COOKIE_SAMESITE'] = "Strict"
+app.config['SESSION_COOKIE_NAME'] = 'Colonizer-App'
+app.config['PERMANENT_SESSION_LIFETIME'] = 60*24*60#settings['general']['timeout']
 Session(app)
 
 # initialize database

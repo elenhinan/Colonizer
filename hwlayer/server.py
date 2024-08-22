@@ -31,8 +31,8 @@ def start_socket():
    log.info('Creating ZeroMQ socket')
    try:
       socket = context.socket(zmq.REP)
-      #socket.bind("ipc:///tmp/settleplate_hw")
-      socket.bind(f"tcp://*:{port}")
+      socket.bind("ipc:///tmp/settleplate_hw")
+      #socket.bind(f"tcp://*:{port}")
    except Exception as e:
       log.error('Could not create ZeroMQ socket')
 
@@ -51,7 +51,7 @@ def main():
       if socket.poll(timeout):
          request = socket.recv_json()
          request.setdefault('wb', [None, None])
-         request.setdefault('flash', None)
+         request.setdefault('light', None)
          request.setdefault('exposure', None)
          request.setdefault('resolution', None)
          request.setdefault('hflip', False)
@@ -69,7 +69,7 @@ def main():
          
          # check if settings changed
          if request != prev_request:
-               camera.set_flash(request['flash'])
+               camera.set_light(request['light'])
                camera.set_exposure(request['exposure'])
                camera.set_whitebalance(request['wb'][0],request['wb'][1])
                camera.set_crop(request['crop'])

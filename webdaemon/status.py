@@ -1,6 +1,6 @@
 from threading import Timer
 from webdaemon.database import db
-from webdaemon.settings import settings
+from settings import settings
 import os
 import hwlayer.client
 import atexit

@@ -1,5 +1,3 @@
-#from app import app
-import io
 import os
 from datetime import datetime, timedelta, date
 from webdaemon import app
@@ -9,14 +7,14 @@ from webdaemon.model import Settleplate, SettleplateForm
 from webdaemon.database import db
 from webdaemon.barcodeparser import Decoder
 from webdaemon.imagetools import *
-from webdaemon.settings import settings, user_validator, SettingsForm
+from settings import settings, user_validator #, SettingsForm
 from webdaemon.status import servicemonitor
 
 # set session to permanent once
-@app.before_request
-def make_session_permanent():
-	app.before_request_funcs[None].remove(make_session_permanent)
-	session.permanent = True
+#@app.before_request
+#def make_session_permanent():
+#	app.before_request_funcs[None].remove(make_session_permanent)
+#	session.permanent = True
 
 # Limit access and set admin flag
 @app.before_request
@@ -44,16 +42,17 @@ def index():
 def login():
 	error = ''
 	if request.method == 'POST':
-		valid, error = user_validator(request.form['username'], request.form['password'])
+		username = request.form['username']
+		password = request.form['password']
+		valid, error = user_validator(username, password)
 		if valid:
-			session['user'] = request.form['username']
+			session['user'] = username
 			session['user_time'] = datetime.now()
 			app.logger.info(f"User {session['user']} logged in")
 			return redirect(url_for('index'))
 		else:
-			app.logger.error(f"Wrong password for user {session['user']}")
+			app.logger.error(f"Wrong password for user {username}")
 			session['user'] = None
-	
 	return render_template('login.html', error=error)
 
 @app.route('/logout', methods=['GET'])
@@ -120,11 +119,12 @@ def capture():
 		light = request.args.get('light')
 		debug = request.args.get('debug') != None
 
-		# turn on leds and capture image
-		leds_ring = (light == 'ring' or light == 'both')
-		leds_flash = (light == 'flash' or light == 'both')
-		
-		success, image = hwlayer.client.capture_image()
+		# get settings for camera
+		capture_settings = settings['camera']['general'].copy()
+		capture_settings.update(settings['camera'][light])
+
+		# request image
+		success, image = hwlayer.client.capture_image(capture_settings)
 
 		if success:
 			# process image
@@ -138,11 +138,11 @@ def capture():
 			if retval == True:
 				image = image_cropped
 
-			session['image'] = image
+			#session['image'] = image
 			session['image_jpeg'] = to_jpg(image)
 			session['image_timestamp'] = datetime.now()
 		else:
-			session['image'] = None
+			#session['image'] = None
 			session['image_jpeg'] = None
 			session['image_timestamp'] = None
 
@@ -152,10 +152,13 @@ def capture():
 	else:
 		resp = make_response(session['image_jpeg'])
 		resp.headers.set('Content-Type', 'image/jpeg')
-		resp.headers.set('Content-Disposition', 'inline', capture='.jpg')
-		resp.headers.set("Cache-Control", "no-store")
-		resp.headers.set("Expires", '0')
-		resp.headers.set("Pragma", "no-cache")
+		#resp.headers.set('Content-Disposition', 'inline', capture='.jpg')
+		#resp.headers.set("Expires", '0')
+		#resp.headers.set("Pragma", "no-cache")
+		resp.cache_control.no_cache = True
+		resp.cache_control.no_store = True
+		resp.cache_control.must_revalidate = True
+		resp.cache_control.max_age = 3
 		return resp
  
 
@@ -168,16 +171,12 @@ def save_image():
 		params = {
 			'user' : session.get("user"),
 			'timestamp' : session['image_timestamp'].strftime('%Y%m%d_%H%M%S'),
-			'ext' : 'jpg',
 			'batch_id' : data['batch']
 		}
-		filename = '{user}-{timestamp}-{batch_id}.{ext}'.format(**params)
+		filename = '{user}-{timestamp}-{batch_id}.jpg'.format(**params)
 		filepath = os.path.join(path, filename)
 		with open(filepath,'wb') as f:
-			if params['ext'] == 'png':
-				img_out = to_png(session['image'])
-			elif params['ext'] == 'jpg':
-				img_out = session['image_jpeg']
+			img_out = session['image_jpeg']
 			app.logger.info('Saving image to: %s (%d kB)'%(filename,len(img_out)/1024))
 			f.write(img_out)
 	except Exception as error:
@@ -194,8 +193,8 @@ def get_image(image_id):
 		return redirect("/static/settleplate.svg")
 	else:
 		img = make_response(image_binary)
-		img.headers.set('Content-Type', 'image/png')
-		img.headers.set('Content-Disposition', 'attachment', filename='%s.png' % image_id)
+		img.headers.set('Content-Type', 'image/jpg')
+		img.headers.set('Content-Disposition', 'attachment', filename=f"{image_id}.jpg")
 		return img
 
 @app.route('/list', methods=['GET', 'POST'])
@@ -364,13 +363,13 @@ def commit_new():
 
 @app.route('/settings', methods=['get'])
 def settings():
-	form = SettingsForm()
-	form.populate()
+	#form = SettingsForm()
+	#form.populate()
 
-	if form.validate_on_submit() and g.isAdmin:
-		pass
+	#if form.validate_on_submit() and g.isAdmin:
+	#	pass
 
-	return render_template('settings.html', form=form)
+	return render_template('settings.html')#, form=form)
 
 @app.route('/status', methods=(['GET']))
 def status():

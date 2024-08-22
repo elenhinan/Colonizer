@@ -57,18 +57,18 @@ class PiHQCamera2(BaseCamera):
 	def capture_array(self):
 		self.ready_cam()
 		self._logger.info(f"Capturing image {self._config['main']['size']}")
-		self.run_flash()
+		self.run_light()
 		image = self._cam.capture_array()
-		self.stop_flash()
+		self.stop_light()
 		return image
 
 	def capture_jpeg(self):
 		self.ready_cam()
 		self._logger.info(f"Capturing image {self._config['main']['size']}")
 		stream = BytesIO()
-		self.run_flash()
+		self.run_light()
 		self._cam.capture_file(stream, format='jpeg')        
-		self.stop_flash()
+		self.stop_light()
 		return stream.getbuffer().tobytes()
 			
 	def set_exposure(self, exp):

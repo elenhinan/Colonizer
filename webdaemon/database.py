@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-from webdaemon.settings import settings
+from settings import settings
 
 db = SQLAlchemy()
 
@@ -7,7 +7,7 @@ def init_database(app):
 	global db
 	app.logger.info('Connecting to SQL database...')
 	config = 'db_test'
-	sql_info = settings['dbs'][settings['general']['database']]
+	sql_info = settings['db']
 	if (sql_info['driver'] == "SQLITE"):
 		app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///{filepath}'.format(**sql_info)
 	elif (sql_info['driver'] in ["ODBC", "FreeTDS"]):

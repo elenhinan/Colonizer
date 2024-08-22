@@ -10,10 +10,8 @@ $(document).ready(function() {
    $("#clear").click(init_page);
 
    // zoom in on image on click
-   $("#image").click(function () {
-      if ($(this).attr("src") == image_capture) {
-         $("#imagemodal").modal('show');
-      }
+   $("#zoom").click(function () {
+      $("#imagemodal").modal('show');
    });
    // when new image loaded, update imagezoom
    $("#image").on('load', function() {
@@ -24,6 +22,7 @@ $(document).ready(function() {
 
    // refresh image on button click
    $("#refresh").click(function () {
+      cfu_clear();
       $("#image").attr("src", image_capture);
       $("#counts").focus();
       $("#counts").attr("readonly", false);

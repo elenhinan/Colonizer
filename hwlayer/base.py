@@ -20,7 +20,7 @@ class BaseSettings(ABC):
 
 class BaseCamera(ABC):
 	def __init__(self):
-		self.set_flash(None)
+		self.set_light("")
 
 	@abstractmethod
 	def capture_array(self) -> np.array:
@@ -43,12 +43,15 @@ class BaseCamera(ABC):
 	@abstractmethod
 	def set_flip(self, horizontal:bool, vertical:bool) -> None:
 		pass
-	def set_flash(self, flash = None):
-		if flash == 'ring':
-			self.run_flash = lambda : illumination.ring([255,255,128])
-		elif flash == 'flood':
-			self.run_flash = lambda : illumination.flood([255,255,128])
+	def set_light(self, light = None):
+		if light is None:
+			light = ""
+		light = light.lower()
+		if light == 'ring':
+			self.run_light = lambda : illumination.ring([92,92,92])
+		elif light == 'top':
+			self.run_light = lambda : illumination.top([92,92,92])
 		else:
-			self.run_flash = lambda : None
-	def stop_flash(self):
-		illumination.stop()
+			self.run_light = lambda : illumination.clear()
+	def stop_light(self):
+		illumination.clear()

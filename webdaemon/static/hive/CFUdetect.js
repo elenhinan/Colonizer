@@ -4,7 +4,7 @@ async function cfu_load_model() {
    // run first with zeros so everything is ready, reducing lag the first time
    let primer = tf.zeros([1,640,640,3], dtype='int32');
    await model.executeAsync(primer);
-   console.log('CFU counting model ready');
+   console.log('CFU-detect - initialized');
 };
 
 async function cfu_detect() {
@@ -18,9 +18,10 @@ async function cfu_detect() {
 
    let n = output_tensor[2].arraySync()[0]
    
-   // get overlay and clear it
+   // clear overlay
+   cfu_clear();
+
    cfu_arr = [];
-   overlay.empty();
    for (let i=0;i<n;i++) {
       let cfu = {
          cert : +output_tensor[3].arraySync()[0][i].toFixed(2), // + to convert from string to number again
@@ -44,8 +45,6 @@ async function cfu_detect() {
    console.log(`Execution time ${end-start} ms`);
 
    cfu_update_counts();
-
-   cfu_arr;
 }
 
 
@@ -63,6 +62,8 @@ function cfu_compare(a,b) {
 }
 
 // load ML-model, and enable button to trigger it
-cfu_load_model().then(function() {
-   $('#detect').click(cfu_detect).prop('disabled', false);
-})
+$(document).ready(function() {
+   cfu_load_model().then(function() {
+      $('#detect').click(cfu_detect).prop('disabled', false);
+   })
+});

@@ -1,8 +1,3 @@
-# NeoPixel library strandtest example
-# Author: Tony DiCola (tony@tonydicola.com)
-#
-# Direct port of the Arduino NeoPixel library strandtest example.  Showcases
-# various animations on a strip of NeoPixels.
 import time
 from threading import Thread, Event, Timer
 from enum import Enum
@@ -12,6 +7,7 @@ from neopixel_spi import NeoPixel_SPI
 
 # LED strip configuration:
 LED_ORDER = "GRB"
+LED_STATUS = 1
 LED_RING = 24
 LED_TOP = 45
 LED_OFF = [0,0,0]
@@ -24,13 +20,14 @@ class Illumination():
 		else:
 			self.logger = None
 		# Create NeoPixel object with appropriate configuration.
-			
-		self.n_leds = LED_RING + LED_TOP
+		self.n_leds = LED_STATUS+LED_RING+LED_TOP
+		
 		self.strip = NeoPixel_SPI(board.SPI(), self.n_leds, auto_write=False, bpp=len(LED_ORDER), pixel_order=LED_ORDER)
 		#self.strip = NeoPixel(board.D10, self.n_leds, auto_write=False, bpp=len(LED_ORDER), pixel_order=LED_ORDER)
 		self.segment = {
-			'ring' : range(0,LED_RING),
-			'top'  : range(LED_RING,LED_RING+LED_TOP)
+			'status': range(0,LED_STATUS),
+			'ring':   range(LED_STATUS,LED_RING+LED_STATUS),
+			'top':	 range(LED_RING+LED_STATUS,LED_STATUS+LED_RING+LED_TOP)
 		}
 
 		self._thread = None
@@ -40,11 +37,9 @@ class Illumination():
 
 	def top(self, color, duration:float=0):
 		self.stop()
-		for i in range(self.n_leds):
-			if i in self.segment['top']:
-				self.strip[i] = color
-			else:
-				self.strip[i] = LED_OFF
+		self.strip.fill(LED_OFF)
+		for i in self.segment['top']:
+			self.strip[i] = color
 		self.strip.show()
 		if duration > 0:
 			self._timer.interval = duration
@@ -52,11 +47,9 @@ class Illumination():
 
 	def ring(self, color, duration:float=0):
 		self.stop()
-		for i in range(self.n_leds):
-			if i in self.segment['ring']:
-				self.strip[i] = color
-			else:
-				self.strip[i] = LED_OFF
+		self.strip.fill(LED_OFF)
+		for i in self.segment['ring']:
+			self.strip[i] = color
 		self.strip.show()
 		if duration > 0:
 			self._timer.interval = duration
@@ -66,14 +59,17 @@ class Illumination():
 	@staticmethod
 	def wheel(pos):
 		"""Generate rainbow colors across 0-255 positions."""
+		pos = pos%255
 		if pos < 85:
-			return [pos * 3, 255 - pos * 3, 0]
+			color = [pos * 3, 255 - pos * 3, 0]
 		elif pos < 170:
 			pos -= 85
-			return [255 - pos * 3, 0, pos * 3]
+			color = [255 - pos * 3, 0, pos * 3]
 		else:
 			pos -= 170
-			return [0, pos * 3, 255 - pos * 3]
+			color = [0, pos * 3, 255 - pos * 3]
+		return [int(round(x,0)) for x in color]
+		
 
 	def color_wipe(self, color, wait_ms=100):
 		self.stop()
@@ -82,7 +78,8 @@ class Illumination():
 
 	def _color_wipe(self, color, wait_ms):
 		"""Wipe color across display a pixel at a time."""
-		for i in range(LED_RING):
+		self.strip.fill(LED_OFF)
+		for i in self.segment['ring']:
 			if self._thread_stop.is_set():
 				return
 			self.strip[i] = color
@@ -96,10 +93,11 @@ class Illumination():
 
 	def _rainbow(self, wait_ms):
 		"""Draw rainbow that uniformly distributes itself across all pixels."""
+		self.strip.fill((0,0,0))
 		while True:
 			for j in range(256):
-				for i in range(LED_RING):
-					self.strip[i] = self.wheel(((i * 256 // LED_RING) + j) & 255)
+				for i in self.segment['ring']:
+					self.strip[i] = self.wheel((i / LED_RING * 256) + j)
 				self.strip.show()
 				time.sleep(wait_ms / 1000.0)
 				if self._thread_stop.is_set():
@@ -115,7 +113,11 @@ class Illumination():
 				self._thread.join()
 			self._thread = None
 			self._thread_stop.clear()
-		self.strip.fill([0,0,0])
+	
+	def clear(self):
+		self.stop()
+		self.strip.fill((0,0,0))
+		self.strip.show()
 		
 illumination = Illumination()
 
@@ -123,13 +125,17 @@ if __name__ == "__main__":
 	led = Illumination()
 	#led.ring([255,196,92])
 	print('test rainbow')
-	led.rainbow(10);
+	led.rainbow();
 	time.sleep(10)
 	print('test wipe')
 	led.color_wipe([92,0,12])
 	time.sleep(5)
 	print('test ring')
 	led.ring([92,92,92])
-	print('test stop')
-	led.stop()
+	time.sleep(5)
+	print('test top')
+	led.top([92,92,92])
+	time.sleep(5)
+	print('test clear')
+	led.clear()
 	

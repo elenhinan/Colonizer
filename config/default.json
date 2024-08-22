@@ -1,0 +1,38 @@
+{
+   "dbs": {
+      "driver": "SQLITE",
+      "hostname": "localhost",
+      "port": 1433,
+      "user": "user",
+      "password": "pass",
+      "name": "settleplate",
+      "arg": "",
+      "table": "SETTLEPLATE"
+   },
+   "regex": {
+      "user": [
+         "^user:(?P<user>.+)$"
+      ],
+      "batch": [
+         "^(?P<batch>[A-Za-z]{3,5}\\d{7})$"
+      ],
+      "location": [
+         "^loc:(?P<location>.+)$"
+      ],
+      "settleplate": [
+         "^(?P<serial>\\d+(?P<lot>\\d{11})(?P<year>\\d{2})(?P<month>\\d{2})(?P<day>\\d{2}))$",
+         "^(?P<serial>\\d+\\s?(?P<lot>\\d{10})(?P<year>\\d{4})(?P<month>\\d{2})(?P<day>\\d{2})\\w+)$"
+      ]
+   },
+   "general": {
+      "adminpwd": "admin",
+      "user_min": 4,
+      "user_max": 8,
+      "timeout": 300,
+      "database": "Test",
+      "mountpoint": "/mnt/data"
+   },
+   "users": {
+      "admin": "admin"
+   }
+}

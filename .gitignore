@@ -16,3 +16,4 @@ config.json
 sass
 webdaemon/static/css/bootstrap_themed.css.map
 webdaemon/static/css/bootstrap_themed.css
+secret.key

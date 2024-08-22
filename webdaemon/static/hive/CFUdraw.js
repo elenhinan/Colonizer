@@ -1,7 +1,21 @@
+var cfu_arr;
+var results;
+var model;
+var show_low = true;
+var threshold_low = 0.20;
+var threshold_high = 0.35
+const labels = ['Unused', 'CFU', 'MultiCFU', 'Bubble', 'Dish']
+console.log("CFUdraw - initialized")
+
 function cfu_toggle(id) {
    let element = document.getElementById(id);
    element.classList.toggle('CFU-positive');
    cfu_update_counts();
+}
+
+function cfu_clear() {
+   $('#overlay').empty();
+   $('#counts').val(0);
 }
 
 function cfu_add(cfu) {
@@ -36,7 +50,7 @@ function cfu_add(cfu) {
       group.addClass('CFU-positive')
    )
 
-   overlay.append(group)
+   $('#overlay').append(group)
 }
 
 function cfu_update_counts() {
@@ -56,19 +70,9 @@ function cfu_export() {
 
 function cfu_import(jsondata) {
    cfu_arr = JSON.parse(jsondata);
-   overlay.empty();
+   $('#overlay').empty();
    cfu_arr.forEach(cfu => {
       cfu_add(cfu);
    });
    cfu_update_counts();
 }
-
-let cfu_arr;
-var results;
-var model;
-var show_low = true;
-var threshold_low = 0.20;
-var threshold_high = 0.35
-var overlay = $('#overlay');
-const labels = ['Unused', 'CFU', 'MultiCFU', 'Bubble', 'Dish']
-$('#counts').val(0);
