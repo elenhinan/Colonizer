@@ -1,7 +1,7 @@
 // initialize on load
 const image_placeholder = "/static/settleplate.svg"
-const image_norefresh = "/images/live?norefresh"
-const image_capture = "/images/live?crop=ring&light=ring"
+const image_capture = "/images/live?mode=ring"
+var image_src = "";
 
 $(document).ready(function() {
    init_page();
@@ -15,21 +15,20 @@ $(document).ready(function() {
    });
    // when new image loaded, update imagezoom
    $("#image").on('load', function() {
-      if ($(this).attr("src") == image_capture) {
-         $("#imagezoom").attr("src", image_norefresh);
+      if ($(this).attr("src") == image_src) {
+         $("#imagezoom").attr("src", image_src);
       }
    })
 
    // refresh image on button click
    $("#refresh").click(function () {
       cfu_clear();
-      $("#image").attr("src", image_capture);
+      // as no-cache is ignored by browser, using cache-breaker
+      image_src = image_capture + "&" +new Date().getTime();
+      $("#image").attr("src", image_src);
       $("#counts").focus();
       $("#counts").attr("readonly", false);
    });
-
-   //$("#image").load(function () {
-   //});
 
    $("#counts").change(function () {
       $("#refresh").attr("disabled", true);
@@ -156,7 +155,7 @@ function init_page() {
    $("#image").attr("src", image_placeholder);
    $("#imagezoom").attr("src", image_placeholder);
    $("#barcode").focus();
-   $("#refresh").attr("disabled", true);
+   //$("#refresh").attr("disabled", true);
    $("#commit").attr("disabled", true);
    slideup_all();
 }

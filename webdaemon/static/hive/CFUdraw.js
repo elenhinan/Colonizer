@@ -5,7 +5,7 @@ var show_low = true;
 var threshold_low = 0.20;
 var threshold_high = 0.35
 const labels = ['Unused', 'CFU', 'MultiCFU', 'Bubble', 'Dish']
-console.log("CFUdraw - initialized")
+console.log("CFU-draw - initialized")
 
 function cfu_toggle(id) {
    let element = document.getElementById(id);
@@ -69,8 +69,8 @@ function cfu_export() {
 }
 
 function cfu_import(jsondata) {
+   cfu_clear();
    cfu_arr = JSON.parse(jsondata);
-   $('#overlay').empty();
    cfu_arr.forEach(cfu => {
       cfu_add(cfu);
    });

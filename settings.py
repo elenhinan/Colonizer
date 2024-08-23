@@ -10,6 +10,7 @@ class Settings(FileSystemEventHandler):
 	def __init__(self):
 		self._data = {}
 		self._changed = False
+		self._logger = None
 		# observer for config file changes
 		self._observer = Observer()
 		self._observer.start()
@@ -19,7 +20,9 @@ class Settings(FileSystemEventHandler):
 		# cleanup on close
 		atexit.register(self._observer.stop)
 
-	def init(self, filename: str):
+	def init(self, filename: str, app = None):
+		if app is not None:
+			self._logger = app.logger
 		self.set_path(os.path.join('./config',f'{filename}.json'))
 		self.load()
 
@@ -43,8 +46,11 @@ class Settings(FileSystemEventHandler):
 		try:
 			with open(filepath,'r') as f:
 				self._data = json.load(f)
+			if self._logger:
+				self._logger.info(f"Settings loaded from {filepath}")
 		except:
-			print(f"Error loading settings from {filepath}, using defaults")
+			if self._logger:
+				self._logger.info(f"Error loading settings from {filepath}")
 			self.load('./default.json')
 
 	def save(self):

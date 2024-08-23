@@ -113,38 +113,36 @@ def show_settleplate():
 
 @app.route('/images/live', methods=['GET'])
 def capture():
-	if 'norefresh' not in request.args:
-		# get parameters
-		crop = request.args.get('crop')
-		light = request.args.get('light')
-		debug = request.args.get('debug') != None
+	# get parameters
+	mode = request.args.get('mode')
 
-		# get settings for camera
-		capture_settings = settings['camera']['general'].copy()
-		capture_settings.update(settings['camera'][light])
+	capture_settings = {}
+	capture_settings.update(settings['camera']['default'])
 
-		# request image
-		success, image = hwlayer.client.capture_image(capture_settings)
+	if mode in settings['camera'].keys():
+		capture_settings.update(settings['camera'][mode])
 
-		if success:
-			# process image
-			retval = False
-			if crop == 'ring':
-				image_cropped, retval = autocrop_ring(image)
-			elif crop == 'rect':
-				image_cropped, retval = autocrop_rect(image)
-			elif retval == False and debug:
-				image = draw_mask(image)
-			if retval == True:
-				image = image_cropped
+	# request image
+	success, image = hwlayer.client.capture_image(capture_settings)
 
-			#session['image'] = image
-			session['image_jpeg'] = to_jpg(image)
-			session['image_timestamp'] = datetime.now()
-		else:
-			#session['image'] = None
-			session['image_jpeg'] = None
-			session['image_timestamp'] = None
+	if success:
+		# process image
+		if capture_settings['autocrop'] == 'ring':
+			image = autocrop_ring(image)
+		elif capture_settings['autocrop'] == 'rect':
+			image = autocrop_rect(image)
+		elif capture_settings['mask']:
+			image = mask_image(image)
+		elif capture_settings['drawmask']:
+			image = draw_mask(image)
+
+		#session['image'] = image
+		session['image_jpeg'] = to_jpg(image)
+		session['image_timestamp'] = datetime.now()
+	else:
+		#session['image'] = None
+		session['image_jpeg'] = None
+		session['image_timestamp'] = None
 
 	# check for valid image_jpeg
 	if session['image_jpeg'] is None:
@@ -153,12 +151,10 @@ def capture():
 		resp = make_response(session['image_jpeg'])
 		resp.headers.set('Content-Type', 'image/jpeg')
 		#resp.headers.set('Content-Disposition', 'inline', capture='.jpg')
-		#resp.headers.set("Expires", '0')
-		#resp.headers.set("Pragma", "no-cache")
 		resp.cache_control.no_cache = True
-		resp.cache_control.no_store = True
 		resp.cache_control.must_revalidate = True
-		resp.cache_control.max_age = 3
+		resp.cache_control.max_age = 5
+		resp.last_modified = session['image_timestamp']
 		return resp
  
 
@@ -301,7 +297,7 @@ def plate_info():
 	# return plate info and scan times
 	response = plateinfo._asdict()
 	# check if user scanning plate is same as user registering, and check if settings allow this
-	response['SameUser'] = (g.username == plateinfo.Username) and settings.sameuser
+	response['SameUser'] = (g.username == plateinfo.Username) and settings['general']['sameuser']
 	response['Timepoints'] = timepoints
 	return jsonify(response)
 
@@ -362,7 +358,7 @@ def commit_new():
 	return jsonify({'commited':True})
 
 @app.route('/settings', methods=['get'])
-def settings():
+def admin_settings():
 	#form = SettingsForm()
 	#form.populate()
 

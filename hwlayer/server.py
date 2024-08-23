@@ -50,36 +50,44 @@ def main():
    while True:
       if socket.poll(timeout):
          request = socket.recv_json()
+         cmd = request.pop('CMD')
+
+         if cmd == 'ready':
+            camera.ready_cam()
+            response = {
+               'msg' : camera.isReady()
+            }
+            socket.send_json(response)
+            continue
+
          request.setdefault('wb', [None, None])
          request.setdefault('light', None)
          request.setdefault('exposure', None)
          request.setdefault('resolution', None)
          request.setdefault('hflip', False)
          request.setdefault('vflip', False)
+         request.setdefault('rotation', None)
          request.setdefault('crop', None)
-
-         log.info("Recieved request")
-         log.debug(request)
+         request.setdefault('color', [92,92,92])
 
          # time capture
          t0 = time.time_ns()
 
-         # get command
-         cmd = request.pop('CMD')
-         
          # check if settings changed
          if request != prev_request:
-               camera.set_light(request['light'])
+               camera.set_light(request['light'],request['color'])
                camera.set_exposure(request['exposure'])
                camera.set_whitebalance(request['wb'][0],request['wb'][1])
                camera.set_crop(request['crop'])
                camera.set_resolution(request['resolution'])
                camera.set_flip(request['hflip'], request['vflip'])
+               camera.set_rotation(request['rotation'])
                prev_request = request
          
          # if capturing array
          try:
                if cmd == 'array':
+                  log.debug(request)
                   image = camera.capture_array()
                   response = {
                      'msg:'  : 'ok',
@@ -88,8 +96,10 @@ def main():
                   }
                   socket.send_json(response, flags=zmq.SNDMORE)
                   socket.send(image, copy=True)
-                  log.info(f"Sent image as array")
+                  t1 = time.time_ns()
+                  log.debug(f"Response time {(t1-t0)*1e-6:.0f} ms")
                elif cmd == 'jpeg':
+                  log.debug(request)
                   data = camera.capture_jpeg()
                   response = {
                      'msg'   : 'ok',
@@ -97,14 +107,8 @@ def main():
                   }
                   socket.send_json(response, flags=zmq.SNDMORE)
                   socket.send(data, copy=True)
-                  log.info(f"Sent image as jpeg")
-               elif cmd == 'ready':
-                  camera.ready_cam()
-                  response = {
-                     'msg' : camera.isReady()
-                  }
-                  socket.send_json(response)
-                  log.info(f"Readied camera")
+                  t1 = time.time_ns()
+                  log.debug(f"Response time {(t1-t0)*1e-6:.0f} ms")
                   
          except Exception as e:
                logging.error(e)
@@ -114,10 +118,6 @@ def main():
                }
                socket.send_json(response)
                log.error(response['error'])
-         else:
-
-               t1 = time.time_ns()
-               log.debug(f"Response time {(t1-t0)*1e-6:.0f} ms")
                
       camera.update()
 

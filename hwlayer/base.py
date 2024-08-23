@@ -43,14 +43,17 @@ class BaseCamera(ABC):
 	@abstractmethod
 	def set_flip(self, horizontal:bool, vertical:bool) -> None:
 		pass
-	def set_light(self, light = None):
+	@abstractmethod
+	def set_rotation(self, dir:str) -> None:
+		pass
+	def set_light(self, light = None, color =[92,92,92]):
 		if light is None:
 			light = ""
 		light = light.lower()
 		if light == 'ring':
-			self.run_light = lambda : illumination.ring([92,92,92])
+			self.run_light = lambda : illumination.ring(color)
 		elif light == 'top':
-			self.run_light = lambda : illumination.top([92,92,92])
+			self.run_light = lambda : illumination.top(color)
 		else:
 			self.run_light = lambda : illumination.clear()
 	def stop_light(self):

@@ -36,7 +36,7 @@ async function cfu_detect() {
       cfu_arr.push(cfu);
    }
    // sort by size so largest is drawn first, so mouse over works as intended
-   cfu_sorted = cfu_arr.slice().sort(cfu_compare).reverse();
+   cfu_sorted = cfu_arr.slice().sort(cfu_compare);
    for (let i=0;i<cfu_sorted.length;i++) {
       cfu_add(cfu_sorted[i]);
    }

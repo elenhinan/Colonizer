@@ -13,7 +13,7 @@ app = Flask(__name__)
 app.logger.setLevel(logging.INFO)
 
 # load settings
-settings.init('testing')
+settings.init('testing', app)
 
 # config
 app.config['SECRET_KEY'] = get_secret(),

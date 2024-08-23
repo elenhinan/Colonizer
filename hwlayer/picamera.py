@@ -1,6 +1,6 @@
 import time
 import logging
-from io import BytesIO
+import numpy as np
 from picamera2 import Picamera2
 from libcamera import Transform, Rectangle
 from hwlayer.base import BaseCamera
@@ -8,7 +8,8 @@ from hwlayer.base import BaseCamera
 class PiHQCamera2(BaseCamera):
 	def __init__(self):
 		self.timeout = 180 # seconds
-		self._logger = logging.getLogger("PiHQCamera2")
+		self._logger = logging.getLogger('PiHQCamera')
+		self._logger.setLevel('DEBUG')
 
 		self._logger.info('Initializing camera')
 		self._cam = Picamera2()
@@ -24,6 +25,7 @@ class PiHQCamera2(BaseCamera):
 		self._last_active = 0
 		self._config_changed = True
 		self._control_changed = True
+		self.rotation = 0
 		super().__init__()
 		
 	def ready_cam(self):
@@ -58,7 +60,10 @@ class PiHQCamera2(BaseCamera):
 		self.ready_cam()
 		self._logger.info(f"Capturing image {self._config['main']['size']}")
 		self.run_light()
+		time.sleep(0.4)
 		image = self._cam.capture_array()
+		if self.rotation:
+			pass
 		self.stop_light()
 		return image
 
@@ -67,6 +72,7 @@ class PiHQCamera2(BaseCamera):
 		self._logger.info(f"Capturing image {self._config['main']['size']}")
 		stream = BytesIO()
 		self.run_light()
+		time.sleep(0.4)
 		self._cam.capture_file(stream, format='jpeg')        
 		self.stop_light()
 		return stream.getbuffer().tobytes()
@@ -90,6 +96,14 @@ class PiHQCamera2(BaseCamera):
 		self._config['transform'] = Transform(hflip=horizontal, vflip=vertical)
 		self._config_changed = True
 	
+	def set_rotation(self, dir:str):
+		if dir == "cw":
+			self.rotation = 1
+		elif dir == "ccw":
+			self.rotation = -1
+		else:
+			self.rotation = 0
+
 	def set_crop(self, crop_rect):
 		if crop_rect is None:
 			# reset crop area to default
