@@ -74,7 +74,9 @@ def find_rect(img_org):
    mask = gen_mask(img_prep)
 
    # detect edges
-   img_canny = cv2.Canny(img_prep,16,48)
+   t1 = settings["autocrop"]["plate"]["canny_t1"]
+   t2 = settings["autocrop"]["plate"]["canny_t2"]
+   img_canny = cv2.Canny(img_prep,t1,t2)
    img_canny_masked = img_canny * mask
    edges = np.nonzero(img_canny_masked)
 

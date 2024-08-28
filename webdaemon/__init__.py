@@ -5,7 +5,7 @@ from flask import Flask
 from flask_session import Session
 from settings import settings, get_secret
 from webdaemon.status import servicemonitor
-from webdaemon.database import init_database
+from webdaemon.database import init_database, create_database
 import hwlayer.client as hwclient
 
 # create flask app
@@ -31,6 +31,7 @@ Session(app)
 
 # initialize database
 init_database(app)
+#create_database(app)
 
 # initialize camera
 app.logger.info('Connecting to RPI HW server...')
@@ -39,6 +40,6 @@ hwclient.start_socket('localhost')
 app.logger.info('Setting up routes...')
 
 # init service checker
-servicemonitor.start()
+servicemonitor.init(app)
 
 from webdaemon import routes

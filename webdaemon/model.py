@@ -27,21 +27,22 @@ class Settleplate(db.Model):
 			super(Settleplate, self,).__init__(**kwargs)
 			self.ScanDate = datetime.now()
 			self.Exported = False
-			self.Version = 'WebApp 1.0'
+			self.Version = 'WebApp 2.0'
 
 	def __repr__(self):
 		return '<Settleplate %r>' % self.ID
 
 class SettleplateForm(FlaskForm):
 	Username = StringField('Name', [validators.DataRequired("Please enter study name")])
-	ScanDate = DateTimeField('Study Date')
+	ScanDate = DateTimeField('Date')
 	Barcode = StringField('Barcode', [validators.DataRequired("Settleplate barcode needed")])
 	Lot_no = StringField('Lot number')
 	Expires = DateField('Expire Date')
 	Counts = IntegerField('Counts')
 	Location = StringField('Location', [validators.DataRequired("Location needed")])
 	Batch = StringField('Batch', [validators.DataRequired("Batch# needed")])
-	Colonies = HiddenField('Colonies')
+	Colonies = HiddenField('Colonies', filters=[lambda x: x.decode('utf8') if type(x) is bytes else x])
+	Version = StringField('Version', render_kw={'readonly': True})
 
 	def validate_Colonies(form, field):
 		if type(field.data) is str:

@@ -1,49 +1,75 @@
 {% extends "interface.html" %}
 {% block head %}
 	{{ super() }}
-	<script src="{{ url_for('static', filename='hive/tf.min.js')}}"></script>
-	<link rel="stylesheet" href="{{ url_for('static', filename='hive/CFUdetect.css')}}">
+	<link rel="stylesheet" href="/static/hive/CFUdetect.css">
 {% endblock %}
-{% from "bootstrap4/form.html" import render_field %}
+{% block scripts %}
+	{{ super() }}
+	<script src="/static/tensorflow/tf.min.js"></script>
+	<script src="/static/hive/CFUdraw.js"></script>
+	<script src="/static/hive/CFUdetect.js"></script>
+	<script>
+		$(document).ready(function() {
+			// zoom in on image on click
+			$("#zoom").click(function () {
+				$("#imagemodal").modal('show');
+			});
+			$("#SPform").on("submit", save_cfu);
+			$('[data-toggle="tooltip"]').tooltip();
+			load_cfu();
+		});
+		function save_cfu() {
+			$("#Colonies").val(cfu_export()); 
+		}
+		function load_cfu() {
+			cfu_data = $("#Colonies").val()
+			if (cfu_data.length > 4) {
+				cfu_import($("#Colonies").val()); 
+			}
+		}
+	</script>
+{% endblock %}
 {% block page_content %}
-<form class="form" method="post">
-		{{ form.hidden_tag() }}
-		<div class="row">
-			<div class="col">{{ render_field(form.Username) }}</div>
-			<div class="col">{{ render_field(form.ScanDate) }}</div>
-		</div>
-		<div class="row">
-			<div class="col">{{ render_field(form.Barcode) }}</div>
-			<div class="col">{{ render_field(form.Batch) }}</div>
-		</div>
-		<div class="row">
-			<div class="col">{{ render_field(form.Location) }}</div>
-			<div class="col">{{ render_field(form.Counts) }}</div>
-		</div>
-{% if not readonly %}
-		<div class="row">
-			<input type="submit" value="Update">
-		</div>
-{% endif %}
-</form>
-<img id="image" class="img-responsive" src="/images/{{settleplate.ID}}" style="width:100%;cursor:zoom-in">
 
-<div id="imagemodal" class="modal">
-	<div class="modal-content">
-		<div class="modal-body">
-			<img src="/images/{{settleplate.ID}}" data-dismiss="modal" data-target="imagemodal" id="imagezoom" style="width:100%;cursor:zoom-out">
+<form id="SPform" class="form" method="post">
+<div class="row">
+	<div class="col mx-3">
+		{% from "bootstrap_form.html" import render_field %}
+		{{ form.hidden_tag() }}
+		<div class="col">
+			{{ render_field(form.Username) }}
+			{{ render_field(form.ScanDate) }}
+			{{ render_field(form.Barcode) }}
+			{{ render_field(form.Batch) }}
+			{{ render_field(form.Location) }}
+			{{ render_field(form.Counts) }}
+			{% if not readonly %}
+			<div class="row btn-group">
+				<button id="update" type="submit" class="btn btn-secondary" name="send" value="update"  data-toggle="tooltip" data-placement="bottom" title="Save"><i class="fa fa-save"></i></button>
+				<button id="zoom"   type="button" class="btn btn-secondary" data-toggle="tooltip" data-placement="bottom" title="Zoom"><i class="fa fa-search-plus"></i></button>
+				<button id="detect" type="button" class="btn btn-secondary" disabled="disabled"  data-toggle="tooltip" data-placement="bottom" title="AI count"><i class="fa fa-magic"></i></button>
+				<button id="delete" type="submit" class="btn btn-danger" name="send" value="delete"  data-toggle="tooltip" data-placement="bottom" title="Delete"><i class="fa fa-trash"></i></button>
+			</div>
+			{% endif %}
+		</div>
+	</div>
+	<div class="col mx-3">
+		<div class="row mb-3">
+			<div style="width:100%;height:0; padding-top:100%;position:relative;">
+				<div class="img-overlay-wrap">
+					<img id="image" class="img-responsive" src="/images/{{settleplate.ID}}" style="position:absolute; top:0; left:0; width:100%;cursor:zoom-in">
+					<svg viewBox="0 0 1 1" preserveAspectRatio="none" id="overlay"></svg>
+				</div>
+			</div>
 		</div>
 	</div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-{{ super() }}
-<script src="{{ url_for('static', filename='hive/CFUdraw.js')}}"></script>
-<script>
-	$("#image").click(function() {
-		$('#imagemodal').modal('show');
-	});
-	cfu_import('{{ colonies | tojson | safe }}')
-</script>
+<div id="imagemodal" class="modal">
+	<div class="modal-content">
+		<div class="modal-body">
+			<img src="/images/{{settleplate.ID}}" data-dismiss="modal" data-target="imagemodal" id="imagezoom"
+				style="width:100%;cursor:zoom-out">
+		</div>
+	</div>
+</div></form>
 {% endblock %}

@@ -35,6 +35,9 @@ class Illumination():
 		self._busy = False
 		self._timer = Timer(0, self.stop)
 
+		# ensure all leds are off
+		self.clear()
+
 	def top(self, color, duration:float=0):
 		self.stop()
 		self.strip.fill(LED_OFF)

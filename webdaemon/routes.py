@@ -1,7 +1,7 @@
 import os
 from datetime import datetime, timedelta, date
 from webdaemon import app
-from flask import render_template, request, jsonify, redirect, make_response, Response, session, url_for, g
+from flask import render_template, request, jsonify, redirect, make_response, Response, session, url_for, g, abort
 import hwlayer.client
 from webdaemon.model import Settleplate, SettleplateForm
 from webdaemon.database import db
@@ -60,6 +60,11 @@ def logout():
 	session['user'] = None
 	return redirect(url_for('login'))
 
+@app.errorhandler(404)
+def page_not_found(e):
+    # note that we set the 404 status explicitly
+    return render_template('404.html'), 404
+
 @app.route('/register', methods=['GET'])
 def register():
 	return render_template('register.html')
@@ -90,7 +95,7 @@ def show_settleplate():
 	#try to fetch settleplate
 	sp = Settleplate.query.get(int(sp_id))
 	if sp is None:
-		return "Not found"
+		abort(404)
 
 	# do user have access to change/delete this?
 	# must either be admin, or creator withing 30 minutes
@@ -101,12 +106,20 @@ def show_settleplate():
 	form = SettleplateForm(obj=sp)
 
 	# validate form if POST
-	if form.validate_on_submit() and not readonly:
-		form.populate_obj(sp)
-		db.session.add(sp)
+	action = request.form.get('send', None)
+	if action == "update" and not readonly:
+		if form.validate_on_submit():
+			form.populate_obj(sp)
+			db.session.add(sp)
+			db.session.commit()
+			app.logger.info(f"Updating settleplate : {sp.id}")
+			new_url = request.base_url + "?id=%d"%sp.ID
+			return redirect(new_url)
+	elif action == "delete" and not readonly:
+		db.session.delete(sp)
 		db.session.commit()
-		new_url = request.base_url + "?id=%d"%sp.ID
-		return redirect(new_url)
+		app.logger.info(f"Deleting settleplate : {sp_id}")
+		return redirect(url_for('list'))
 
 	return render_template('settleplate.html', settleplate=sp, form=form, readonly=readonly)
 		
@@ -183,12 +196,13 @@ def save_image():
 
 @app.route('/images/<int:image_id>', methods=['GET'])
 def get_image(image_id):
-	image_binary = Settleplate.query.get(int(image_id)).Image
-	if image_binary is None:
-		#return Response(status = 200)
+	sp = Settleplate.query.get(int(image_id))
+	if sp is None:
+		return redirect("/static/settleplate.svg")
+	elif sp.Image is None:
 		return redirect("/static/settleplate.svg")
 	else:
-		img = make_response(image_binary)
+		img = make_response(sp.Image)
 		img.headers.set('Content-Type', 'image/jpg')
 		img.headers.set('Content-Disposition', 'attachment', filename=f"{image_id}.jpg")
 		return img
@@ -202,6 +216,7 @@ def list_settleplates():
 			settleplate = Settleplate.query.get(int(settleplate_id))
 			db.session.delete(settleplate)
 		db.session.commit()
+		app.logger.info(f"Deleting settleplates : {selected}")
 
 	# define search from request data
 	date_from = request.args.get('from', (date.today() - timedelta(days=7)).isoformat(), str)
@@ -213,10 +228,6 @@ def list_settleplates():
 	query = Settleplate.query
 	# filter date
 	try:
-		# update to python > 3.7
-		#a = date.fromisoformat(date_from)
-		#b = date.fromisoformat(date_to)
-		# fix for python 3.5
 		a = date(*map(int, date_from.split('-')))
 		b = date(*map(int, date_to.split('-')))
 		query = query.filter(
@@ -329,7 +340,7 @@ def scan_add():
 				return jsonify({'committed':False})
 			else:
 				dt = round((sp.ScanDate - plateinfo.ScanDate).total_seconds() / 3600) # convert to hours
-				app.logger.info('Saved %s to DB with %d counts'%(sp.Barcode, sp.Counts))
+				app.logger.info(f'Saved {sp.Barcode} to DB with {sp.Counts} counts')
 				return jsonify({'committed':True, 'Counts': sp.Counts, 'ID': sp.ID, 'dT': dt })
 		else:
 			return jsonify({'committed':False})

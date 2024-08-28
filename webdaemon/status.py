@@ -1,5 +1,6 @@
 from threading import Timer
 from webdaemon.database import db
+from sqlalchemy import text
 from settings import settings
 import os
 import hwlayer.client
@@ -9,8 +10,14 @@ class ServiceMonitor(Timer):
 	status = {}
 
 	def __init__(self, interval=30):
+		self._app = None
 		atexit.register(self.cancel)
 		super().__init__(interval, self.check_services)
+
+	def init(self, app):
+		self._app = app
+		self.check_services()
+		self.start()
 
 	def run(self):
 		while not self.finished.wait(self.interval):
@@ -19,7 +26,8 @@ class ServiceMonitor(Timer):
 	def check_services(self):
 		# check sql status
 		try:
-			db.session.execute('SELECT 1')
+			with self._app.app_context():
+				db.session.execute(text('SELECT 1'))
 		except:
 			self.status['sql'] = False
 		else:

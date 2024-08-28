@@ -3,6 +3,13 @@
 	{{ super() }}
 	<link rel="stylesheet" href="/static/hive/CFUdetect.css">
 {% endblock %}
+{% block scripts %}
+	{{ super() }}
+	<script src="/static/tensorflow/tf.min.js"></script>
+	<script src="/static/js/scan.js"></script>
+	<script src="/static/hive/CFUdraw.js"></script>
+	<script src="/static/hive/CFUdetect.js"></script>
+{% endblock %}
 {% block page_content %}
 <div class="row">
 	<div class="col mx-3">
@@ -66,7 +73,7 @@
 				<div class="input-group-prepend">
 					<label class="input-group-text" style="width: 90px;">Counts</label>
 				</div>
-				<input type="number" min=0 step=1 class="form-control" id="counts" placeholder="&lt;# of colonies&gt;">
+				<input type="number" min=0 step=1 class="form-control" id="Counts" placeholder="&lt;# of colonies&gt;">
 				<div class="input-group-append">
 					<button id="refresh" type="button" class="btn btn-secondary"><i class="fa fa-camera"></i></button>
 					<button id="detect" type="button" class="btn btn-secondary"><i class="fa fa-magic"></i></button>
@@ -97,12 +104,4 @@
 	</div>
 </div>
 
-{% endblock %}
-
-{% block scripts %}
-{{ super() }}
-<script src="/static/tensorflow/tf.min.js"></script>
-<script src="/static/js/scan.js"></script>
-<script src="/static/hive/CFUdraw.js"></script>
-<script src="/static/hive/CFUdetect.js"></script>
 {% endblock %}

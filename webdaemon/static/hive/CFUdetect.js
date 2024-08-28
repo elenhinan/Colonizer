@@ -27,7 +27,8 @@ async function cfu_detect() {
          cert : +output_tensor[3].arraySync()[0][i].toFixed(2), // + to convert from string to number again
          bbox : output_tensor[4].arraySync()[0][i].map(item => +item.toFixed(4)),
          label : labels[Number(output_tensor[5].arraySync()[0][i])],
-         id: i
+         id: i,
+         override : false
       }
       // skip if below threshold1
       if (cfu.cert < threshold_low) { break; }

@@ -155,7 +155,7 @@ function init_page() {
    $("#image").attr("src", image_placeholder);
    $("#imagezoom").attr("src", image_placeholder);
    $("#barcode").focus();
-   //$("#refresh").attr("disabled", true);
+   $("#refresh").attr("disabled", true);
    $("#commit").attr("disabled", true);
    slideup_all();
 }

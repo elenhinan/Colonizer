@@ -10,12 +10,15 @@ console.log("CFU-draw - initialized")
 function cfu_toggle(id) {
    let element = document.getElementById(id);
    element.classList.toggle('CFU-positive');
+   let index = Number(id.split('-')[1]);
+   cfu_arr[index].override = !cfu_arr[index].override;
+   console.log(index);
    cfu_update_counts();
 }
 
 function cfu_clear() {
    $('#overlay').empty();
-   $('#counts').val(0);
+   //$('#Counts').val(0);
 }
 
 function cfu_add(cfu) {
@@ -46,7 +49,7 @@ function cfu_add(cfu) {
    group.click(function() { cfu_toggle(this.id); });
    group.append(rect);
    group.append(text);
-   if (cfu.cert >= threshold_high) (
+   if ((cfu.cert >= threshold_high) | cfu.override) (
       group.addClass('CFU-positive')
    )
 
@@ -54,9 +57,8 @@ function cfu_add(cfu) {
 }
 
 function cfu_update_counts() {
-
    let n_cfus = $('.CFU-positive').length
-   $("#counts").val(n_cfus);
+   $("#Counts").val(n_cfus);
 }
 
 function cfu_export() {
@@ -74,5 +76,6 @@ function cfu_import(jsondata) {
    cfu_arr.forEach(cfu => {
       cfu_add(cfu);
    });
-   cfu_update_counts();
+   // counts should be same as in db, if not it has been set manually and should be kept
+   //cfu_update_counts();
 }

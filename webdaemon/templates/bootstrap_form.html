@@ -1,0 +1,97 @@
+{#  This file was part of Flask-Bootstrap and was modified under the terms of
+   its BSD License. Copyright (c) 2013, Marc Brinkmann. All rights reserved. #}
+  
+  {% macro render_hidden_errors(form) %}
+      {%- if form.errors %}
+          {%- for fieldname, errors in form.errors.items() %}
+              {%- if bootstrap_is_hidden_field(form[fieldname]) %}
+                  {%- for error in errors %}
+                      <div class="d-block invalid-feedback">{{ error }}</div>
+                  {%- endfor %}
+              {%- endif %}
+          {%- endfor %}
+      {%- endif %}
+  {%- endmacro %}
+  
+  {% macro _hz_form_wrap(horizontal_columns, form_type, add_group=False, required=False) %}
+      {% if form_type == "horizontal" %}
+          {% if add_group %}
+              <div class="form-group row{% if required %} required{% endif %}">{% endif %}
+          <div class="offset-{{ horizontal_columns[0] }}-{{ horizontal_columns[1] }}
+                col-{{ horizontal_columns[0] }}-{{ horizontal_columns[2] }}
+               ">
+      {% endif %}
+  {{ caller() }}
+  
+  {% if form_type == "horizontal" %}
+      {% if add_group %}</div>{% endif %}
+      </div>
+  {% endif %}
+  {% endmacro %}
+  
+  {% macro render_field(field,
+                      form_type="basic",
+                      horizontal_columns=('lg', 1, 10),
+                      button_map={},
+                      button_style='',
+                      button_size='') %}
+  
+      {# combine render_kw class or class/class_ argument with Bootstrap classes #}
+      {% set render_kw_class = ' ' + field.render_kw.class if field.render_kw.class else '' %}
+      {% set class = kwargs.pop('class', '') or kwargs.pop('class_', '') %}
+      {% if class %}
+          {# override render_kw class when class/class_ presents as keyword argument #}
+          {% set render_kw_class = '' %}
+          {% set render_kw_class_ = '' %}
+          {% set class = ' ' + class %}
+      {% endif %}
+      {% set extra_classes = render_kw_class + class %}
+  
+      {%- if field.type == 'SubmitField' -%}
+          {# deal with jinja scoping issues? #}
+          {% set field_kwargs = kwargs %}
+          {# note: same issue as above - should check widget, not field type #}
+          {% call _hz_form_wrap(horizontal_columns, form_type, True, required=required) %}
+              {% set default_button_style = button_style or config.BOOTSTRAP_BTN_STYLE %}
+              {% set default_button_size = button_size or config.BOOTSTRAP_BTN_SIZE %}
+              {{ field(class='btn btn-%s btn-%s%s' % (button_map.get(field.name, default_button_style), default_button_size, extra_classes), **field_kwargs) }}
+          {% endcall %}
+      {%- elif field.type in ['CSRFTokenField', 'HiddenField'] -%}
+          {{ field()|safe }}
+      {% else -%}
+      <div class="row mb-3">
+         <div class="input-group{%- if field.flags.required %} required{% endif -%}">
+            <div class="input-group-prepend">
+               {{ field.label(class="input-group-text", style="width: 90px;")|safe }}
+            </div>
+            {% if field.type == 'FileField' %}
+                  {% if field.errors %}
+                     {{ field(class="form-control-file is-invalid%s" % extra_classes, **kwargs)|safe }}
+                  {% else %}
+                     {{ field(class="form-control-file%s" % extra_classes, **kwargs)|safe }}
+                  {% endif %}
+            {%- elif field.type in ['DecimalRangeField', 'IntegerRangeField'] -%}
+                  {% if field.errors %}
+                     {{ field(class="form-control-range is-invalid%s" % extra_classes, **kwargs)|safe }}
+                  {% else %}
+                     {{ field(class="form-control-range%s" % extra_classes, **kwargs)|safe }}
+                  {% endif %}
+            {% else %}
+                  {% if field.errors %}
+                     {{ field(class="form-control is-invalid%s" % extra_classes, **kwargs)|safe }}
+                  {% else %}
+                     {{ field(class="form-control%s" % extra_classes, **kwargs)|safe }}
+                  {% endif %}
+            {% endif %}
+            {%- if field.errors %}
+                  {%- for error in field.errors %}
+                     <div class="invalid-feedback" style="display: block;">{{ error }}</div>
+                  {%- endfor %}
+            {%- elif field.description -%}
+                  <small class="form-text text-muted">{{ field.description|safe }}</small>
+            {%- endif %}
+         </div>
+      </div>
+      {% endif %}
+  {% endmacro %}
+  
