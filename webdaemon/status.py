@@ -2,17 +2,31 @@ from threading import Timer
 from webdaemon.database import db
 from sqlalchemy import text
 from settings import settings
+from datetime import datetime, timedelta
 import os
 import hwlayer.client
 import atexit
 
 class ServiceMonitor(Timer):
-	status = {}
-
-	def __init__(self, interval=30):
+	sleeptimer = 600
+	interval = 30
+	def __init__(self,):
 		self._app = None
+		self._status = {
+			'sql': False,
+			'camera': False,
+			'share': False
+		}
+		self._lastaccess = datetime.now()
 		atexit.register(self.cancel)
-		super().__init__(interval, self.check_services)
+		super().__init__(self.interval, self.check_services)
+
+	@property
+	def status(self):
+		self._lastaccess = datetime.now()
+		if ((self._lastaccess - self._lastupdate) > timedelta(seconds=self.interval)):
+			self.check_services()
+		return self._status.copy()
 
 	def init(self, app):
 		self._app = app
@@ -24,19 +38,25 @@ class ServiceMonitor(Timer):
 			self.function(*self.args, **self.kwargs)
 
 	def check_services(self):
+		# if inactive for a while, do not update
+		if (datetime.now() - self._lastaccess) > timedelta(seconds=self.sleeptimer):
+			return
 		# check sql status
 		try:
 			with self._app.app_context():
 				db.session.execute(text('SELECT 1'))
 		except:
-			self.status['sql'] = False
+			self._status['sql'] = False
 		else:
-			self.status['sql'] = True
+			self._status['sql'] = True
 
 		# check camera status
-		self.status['camera'] = hwlayer.client.is_ready()
+		self._status['camera'] = hwlayer.client.is_ready()
 
 		# check storage status
-		self.status['storage'] = os.path.ismount(settings['general']['mountpoint'])
+		self._status['storage'] = os.path.ismount(settings['general']['mountpoint'])
+
+		# timestamp status
+		self._lastupdate = datetime.now()
 
 servicemonitor = ServiceMonitor()

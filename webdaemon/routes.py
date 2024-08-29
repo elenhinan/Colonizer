@@ -35,7 +35,7 @@ def login_check(admin=False):
 # default page
 @app.route('/')
 def index():
-	return redirect(request.base_url + "list")
+	return redirect(url_for('list_settleplates'))
 
 # Login dialog
 @app.route('/login', methods=['GET', 'POST'])
@@ -85,7 +85,7 @@ def scan_settleplate():
 		new_url = request.base_url + "?id=%d"%sp.id
 		return redirect(new_url)
 
-	return render_template('scan.html', settleplate=sp, form=form)
+	return render_template('scan.html', settleplate=sp, form=form, autocount=settings['general']['autocount'])
 
 
 @app.route('/settleplate', methods=['GET', 'POST'])
@@ -119,7 +119,7 @@ def show_settleplate():
 		db.session.delete(sp)
 		db.session.commit()
 		app.logger.info(f"Deleting settleplate : {sp_id}")
-		return redirect(url_for('list'))
+		return redirect(url_for('list_settleplates'))
 
 	return render_template('settleplate.html', settleplate=sp, form=form, readonly=readonly)
 		
@@ -274,7 +274,7 @@ def get_batch_date():
 		if len(results):
 			response = [r._asdict() for r in results]
 			return jsonify(response)
-	return ""
+	return jsonify([])
 
 @app.route('/db/plate_info', methods=(['POST']))
 def plate_info():
@@ -376,7 +376,7 @@ def admin_settings():
 	#if form.validate_on_submit() and g.isAdmin:
 	#	pass
 
-	return render_template('settings.html')#, form=form)
+	return render_template('settings.html', settings=settings.data)#, form=form)
 
 @app.route('/status', methods=(['GET']))
 def status():

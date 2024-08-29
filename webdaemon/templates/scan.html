@@ -9,6 +9,18 @@
 	<script src="/static/js/scan.js"></script>
 	<script src="/static/hive/CFUdraw.js"></script>
 	<script src="/static/hive/CFUdetect.js"></script>
+	{% if autocount %}
+	<script>
+		$(document).ready(function() {
+			$("#image").on('load', function() {
+				if ($(this).attr("src") == image_src) {
+					cfu_detect();
+					$("#commit").attr("disabled", false);
+				}
+			});
+		});
+	</script>
+	{% endif %}
 {% endblock %}
 {% block page_content %}
 <div class="row">
@@ -54,7 +66,7 @@
 			</table>
 		</div>
 		<div class="row">
-			<div class="row alert alert-danger" id="sameuser_error" style="display: none;">
+			<div class="alert alert-warning" id="sameuser_error" style="display: none; width: 100%">
 				<strong>Warning!</strong> Same user scanning as registering plate!
 			</div>
 		</div>

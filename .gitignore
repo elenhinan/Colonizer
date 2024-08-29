@@ -12,8 +12,11 @@ run
 webdaemon/static/fontawesome
 webdaemon/static/bootstrap
 webdaemon/static/tensorflow
+webdaemon/static/jsoneditor
 config.json
 sass
 webdaemon/static/css/bootstrap_themed.css.map
 webdaemon/static/css/bootstrap_themed.css
 secret.key
+config/production.json
+config/testing.json

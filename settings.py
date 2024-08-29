@@ -39,6 +39,10 @@ class Settings(FileSystemEventHandler):
 		self._observer.unschedule_all()
 		self._observer.schedule(self, path=os.path.dirname(self._filepath))
 
+	@property
+	def data(self):
+		return self._data.copy()
+
 	def load(self, filepath: str = ''):
 		if filepath == '':
 			filepath = self._filepath

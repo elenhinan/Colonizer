@@ -63,6 +63,14 @@ mkdir -p $TF_DIR
 wget -nv https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9/dist/tf.min.js -P $TF_DIR
 wget -nv https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9/dist/tf.min.js.map -P $TF_DIR
 
+# install jsoneditor js
+JE_DIR=/app/Colonizer/webdaemon/static/jsoneditor
+mkdir -p $JE_DIR $JE_DIR/img
+wget -nv https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/10.1.0/jsoneditor.js -P $JE_DIR
+wget -nv https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/10.1.0/jsoneditor.map -P $JE_DIR
+wget -nv https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/10.1.0/jsoneditor.css -P $JE_DIR
+wget -nv https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/10.1.0/img/jsoneditor-icons.svg $JE_DIR/img
+
 # install sass
 cd /tmp
 wget https://github.com/sass/dart-sass/releases/download/1.77.5/dart-sass-1.77.5-linux-arm64.tar.gz
@@ -75,6 +83,13 @@ cd /app/Colonizer/webdaemon/static
 
 # create folder for smb share
 mkdir -p /mnt/data
+
+# setup auto-remount in crontab
+sudo crontab -e
+add "*/5 * * * * grep -q "/mnt/petra" /proc/mounts || sudo mount /mnt/petra"
+sudo pico /etc/fstab
+add "//yourfileserver/sharename  /mnt/data      cifs    noserverino,credentials=/home/pi/.smbcredentials    0    0"
+add "username=<username>\npassword=<password>" to ~/.smbcredentials
 
 # set permissions
 sudo chown colonizer:www-data /mnt/data

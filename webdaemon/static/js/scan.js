@@ -19,18 +19,23 @@ $(document).ready(function() {
          $("#imagezoom").attr("src", image_src);
       }
    })
-
+   // script for capturing barcode reader input on screen
+   // prevent submit on enter press
+   $("#barcode").change(function (event) {
+      $("#barcode").attr('readonly', true);
+      decode_text($("#barcode").val());
+   });
    // refresh image on button click
    $("#refresh").click(function () {
       cfu_clear();
       // as no-cache is ignored by browser, using cache-breaker
       image_src = image_capture + "&" +new Date().getTime();
       $("#image").attr("src", image_src);
-      $("#counts").focus();
-      $("#counts").attr("readonly", false);
+      $("#Counts").focus();
+      $("#Counts").attr("readonly", false);
    });
 
-   $("#counts").change(function () {
+   $("#Counts").change(function () {
       $("#refresh").attr("disabled", true);
       $("#commit").attr("disabled", false);
       $("#commit").focus();
@@ -39,14 +44,14 @@ $(document).ready(function() {
    // commit image to db on click
    $("#commit").click(function () {
       $("#commit").attr("disabled", true);
-      $("#counts").attr('readonly', true);
+      $("#Counts").attr('readonly', true);
       $("#commit").blur();
       $("#commit_wait").slideDown();
       $.ajax({
          type: "POST",
          contentType: "application/json; charset=utf-8",
          url: "/scan_add",
-         data: JSON.stringify({ barcode: $("#barcode").val(), counts: $("#counts").val() }),
+         data: JSON.stringify({ barcode: $("#barcode").val(), counts: $("#Counts").val() }),
          success: function (data) {
             console.log(data);
             $("#commit_wait").slideUp();
@@ -75,13 +80,6 @@ function slideup_all() {
       $("#sameuser_error").slideUp();
    }, 3000);
 }
-
-// script for capturing barcode reader input on screen
-// prevent submit on enter press
-$("#barcode").change(function (event) {
-   $("#barcode").attr('readonly', true);
-   decode_text($("#barcode").val());
-});
 
 function decode_text(text_input) {
    console.log("Request barcode decode: " + text_input);
@@ -145,8 +143,8 @@ function table_append(ID, dT, Counts) {
 }
 
 function init_page() {
-   $("#counts").val("");
-   $("#counts").attr('readonly', true);
+   $("#Counts").val("");
+   $("#Counts").attr('readonly', true);
    $("#barcode").val("");
    $("#barcode").attr('readonly', false);
    $("#batch").val("");

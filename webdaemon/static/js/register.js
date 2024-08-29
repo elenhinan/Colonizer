@@ -8,7 +8,8 @@ var batch_locations;
 const GLYPH = {
    WAIT: 'wait',
    PASS: 'pass',
-   FAIL: 'fail'
+   FAIL: 'fail',
+   ACTIVE: 'active'
 }
 
 const STATE = {
@@ -99,11 +100,14 @@ function process_input(data) {
                input_pass();
                transition(STATE.LOCATION);
             }
-            if(data.expire < 0) {
+            let expire = new Date(data.expire);
+            if(expire > new Date()) {
+               // not expired
                $("#expired-plate").slideUp();
             } else {
+               // plate expired
                $("#expired-plate").slideDown();
-               $("#expire-date").innerText = data.expire;
+               $("#expire-date").text(expire.toLocaleDateString());
             }
          } else {
             input_fail();
@@ -117,6 +121,7 @@ function process_input(data) {
                input_fail();
             } else {
                $("#duplicate-location").slideUp();
+               $("#expired-plate").slideUp();
                new_location = data.location;
                input_pass();
                transition(STATE.REGISTER);
@@ -154,7 +159,6 @@ function set_glyph(glyph, state) {
 }
 
 function update_table() {
-   $("#table_registered").empty();
    if(new_batch == null) return;
    $.ajax({
       type: "POST",
@@ -164,6 +168,7 @@ function update_table() {
          success: function (data) {
             batch_locations = data;
             console.log(batch_locations);
+            $("#table_registered").empty();
             for(var i=0; i<batch_locations.length;i++) {
                $("#table_registered").append(`
                   <tr>

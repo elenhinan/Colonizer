@@ -1,8 +1,11 @@
+const image_capture = "/images/live?mode=top"
+
+function refresh_image() {
+   $("#image").attr("src", image_capture + "&" +new Date().getTime());
+}
+
 $(document).ready(function() {
-   $("#refresh").click(function () {
-      //$("#image").attr("src", image_capture);
-      fetch($("#image").attr("src"), {cache: 'reload', mode: 'no-cors'});
-   });
+   $("#refresh").click(refresh_image);
 
    $("#save").click(function () {
       $("#save_wait").slideDown();

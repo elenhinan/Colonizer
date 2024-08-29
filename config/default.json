@@ -1,27 +1,29 @@
 {
-   "dbs": {
-      "driver": "SQLITE",
-      "hostname": "localhost",
-      "port": 1433,
-      "user": "user",
-      "password": "pass",
-      "name": "settleplate",
-      "arg": "",
-      "table": "SETTLEPLATE"
+   "db": {
+      "driver": "FreeTDS",
+      "dbname": "",
+      "host" : "",
+      "port" : 1433,
+      "user" : "",
+      "password" : "",
+      "arg" : "TDS_Version=8.0;",
+      "table": ""
    },
    "regex": {
       "user": [
          "^user:(?P<user>.+)$"
       ],
       "batch": [
-         "^(?P<batch>[A-Za-z]{3,5}\\d{7})$"
+         "^(?P<batch>[A-Za-z]{3,5}\\d{7})$",
+	      "^(?P<batch>[A-Za-z]{3,5}\\d{8}-\\d)$"
       ],
       "location": [
          "^loc:(?P<location>.+)$"
       ],
       "settleplate": [
-         "^(?P<serial>\\d+(?P<lot>\\d{11})(?P<year>\\d{2})(?P<month>\\d{2})(?P<day>\\d{2}))$",
-         "^(?P<serial>\\d+\\s?(?P<lot>\\d{10})(?P<year>\\d{4})(?P<month>\\d{2})(?P<day>\\d{2})\\w+)$"
+         "^(?P<serial>\\d{18}(?P<year>\\d{2})(?P<month>\\d{2})(?P<day>\\d{2})\\d{2}(?P<lot>\\d{10})\\d{8})$",
+	      "^(?P<serial>\\d+(?P<lot>\\d{11})(?P<year>\\d{2})(?P<month>\\d{2})(?P<day>\\d{2}))$",
+	      "^(?P<serial>\\d+\\s?(?P<lot>\\d{10})(?P<year>\\d{4})(?P<month>\\d{2})(?P<day>\\d{2})\\w{9})$"
       ]
    },
    "general": {
@@ -29,10 +31,55 @@
       "user_min": 4,
       "user_max": 8,
       "timeout": 300,
-      "database": "Test",
       "mountpoint": "/mnt/data"
    },
    "users": {
       "admin": "admin"
+   },
+   "camera": {
+      "default": {
+         "crop": [650, 16, 3008, 3008],
+         "image": true,
+         "hflip": false,
+         "vflip": true,
+         "rotation": "cw",
+         "light": "none",
+         "color": [0,0,0],
+         "exposure": 50000,
+         "wb": [2.3,2,3],
+         "autocrop" : "none",
+         "mask" : false,
+         "drawmask" : false
+      },
+      "ring": {
+         "light": "ring",
+         "color": [255,78,36],
+         "exposure": 200000,
+         "wb": [1.8,1.8],
+         "mask": true
+      },
+      "top": {
+         "light": "top",
+         "color": [255,76,25],
+         "exposure": 33000,
+         "wb": [1.8,1.8]
+      },
+      "debug": {
+         "drawmask": true
+      }
+   },
+   "autocrop": {
+      "settleplate": {
+         "c_x": 0.506,
+         "c_y": 0.5,
+         "c_r": 0.435,
+         "mask": true,
+         "crop": false
+      },
+      "plate": {
+         "autolevel": false,
+         "canny_t1": 16,
+         "canny_t2": 48
+      }
    }
 }

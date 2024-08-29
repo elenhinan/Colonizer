@@ -1,50 +1,25 @@
 {% extends "interface.html" %}
+{% block head %}
+   {{ super() }}
+   <link href="static/jsoneditor/jsoneditor.min.css" rel="stylesheet" type="text/css">
+   <script src="static/jsoneditor/jsoneditor.min.js"></script>
+{% endblock %}
 {% block page_content %}
-<form class="form form-horizontal" method="post">
-   {{ form.hidden_tag() }}
-   <fieldset><legend><label for='database'>Database</label></legend>
-   {% for field in form.db if field.widget.input_type != 'hidden' %}
-   <div class="row">
-      <div class="col form-group">
-         <div class="input-group">
-            <div class="input-group-prepend">
-               {{field.label(class_="input-group-text label-text")}}
-            </div>
-            {{field(class_="form-control")}}
-         </div>
-      </div>
-   </div>
-   {% endfor %}
-   </fieldset>
-   <fieldset><legend><label for='regex'>Regex search barcodes</label></legend>
-      {% for field in form.regex if field.widget.input_type != 'hidden' %}
-      <div class="row">
-         <div class="col form-group">
-            <div class="input-group">
-               <div class="input-group-prepend">
-                  {{field.label(class_="input-group-text label-text")}}
-               </div>
-               {{field(class_="form-control")}}
-            </div>
-         </div>
-      </div>
-      {% endfor %}
-   </fieldset>
-   <fieldset><legend><label for='users'>Users</label></legend>
-      {% for field in form.users if field.widget.input_type != 'hidden' %}
-      <div class="row">
-         <div class="col form-group">
-            <div class="input-group">
-               <div class="input-group-prepend">
-                  {{field.label(class_="input-group-text label-text")}}
-               </div>
-               {{field(class_="form-control")}}
-            </div>
-         </div>
-      </div>
-      {% endfor %}
-   </fieldset>
-   
-   <input type="submit" value="Store">
-</form>
+
+<div id="jsoneditor" style="width: 100%; height: 600px;"></div>
+
+<script>
+   // create the editor
+   const container = document.getElementById("jsoneditor")
+   const options = {
+      mode: 'code'
+   };
+   const editor = new JSONEditor(container, options)
+
+   // set json
+   editor.set({{settings|tojson|safe}})
+
+   // get json
+   //const updatedJson = editor.get()
+</script>
 {% endblock %}
