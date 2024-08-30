@@ -51,7 +51,7 @@ $(document).ready(function() {
          type: "POST",
          contentType: "application/json; charset=utf-8",
          url: "/scan_add",
-         data: JSON.stringify({ barcode: $("#barcode").val(), counts: $("#Counts").val() }),
+         data: JSON.stringify({ barcode: $("#barcode").val(), counts: $("#Counts").val(), colonies: cfu_export()}),
          success: function (data) {
             console.log(data);
             $("#commit_wait").slideUp();

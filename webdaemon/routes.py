@@ -69,21 +69,21 @@ def page_not_found(e):
 def register():
 	return render_template('register.html')
 
-@app.route('/scan', methods=['GET', 'POST'])
+@app.route('/scan', methods=['GET']) #, 'POST'])
 def scan_settleplate():
 	# create
 	sp = Settleplate()
 	
 	# create form
 	form = SettleplateForm(obj=sp)
-	
+	# todo should not post here
 	# # validate form if POST
-	if request.method == 'POST' and form.validate():
-		form.populate_obj(sp)
-		db.session.add(sp)
-		db.session.commit()
-		new_url = request.base_url + "?id=%d"%sp.id
-		return redirect(new_url)
+	#if request.method == 'POST' and form.validate():
+	#	form.populate_obj(sp)
+	#	db.session.add(sp)
+	#	db.session.commit()
+	#	new_url = request.base_url + "?id=%d"%sp.id
+	#	return redirect(new_url)
 
 	return render_template('scan.html', settleplate=sp, form=form, autocount=settings['general']['autocount'])
 
@@ -112,7 +112,7 @@ def show_settleplate():
 			form.populate_obj(sp)
 			db.session.add(sp)
 			db.session.commit()
-			app.logger.info(f"Updating settleplate : {sp.id}")
+			app.logger.info(f"Updating settleplate : {sp.ID}")
 			new_url = request.base_url + "?id=%d"%sp.ID
 			return redirect(new_url)
 	elif action == "delete" and not readonly:
@@ -151,7 +151,7 @@ def capture():
 
 		#session['image'] = image
 		session['image_jpeg'] = to_jpg(image)
-		session['image_timestamp'] = datetime.now()
+		session['image_timestamp'] = datetime.now().isoformat()
 	else:
 		#session['image'] = None
 		session['image_jpeg'] = None
@@ -167,7 +167,7 @@ def capture():
 		resp.cache_control.no_cache = True
 		resp.cache_control.must_revalidate = True
 		resp.cache_control.max_age = 5
-		resp.last_modified = session['image_timestamp']
+		resp.last_modified = datetime.fromisoformat(session['image_timestamp'])
 		return resp
  
 
@@ -179,7 +179,7 @@ def save_image():
 		path = '/mnt/petra/Data/Colonizer'
 		params = {
 			'user' : session.get("user"),
-			'timestamp' : session['image_timestamp'].strftime('%Y%m%d_%H%M%S'),
+			'timestamp' : datetime.fromisoformat(session['image_timestamp']).strftime('%Y%m%d_%H%M%S'),
 			'batch_id' : data['batch']
 		}
 		filename = '{user}-{timestamp}-{batch_id}.jpg'.format(**params)
@@ -323,7 +323,7 @@ def scan_add():
 		if len(plateinfo):
 			sp = Settleplate()
 			sp.Username = session['user']
-			sp.ScanDate = session['image_timestamp']
+			sp.ScanDate = datetime.fromisoformat(session['image_timestamp'])
 			sp.Barcode = data['barcode']
 			sp.Lot_no = plateinfo.Lot_no
 			sp.Expires = plateinfo.Expires
@@ -332,6 +332,8 @@ def scan_add():
 			sp.Batch = plateinfo.Batch
 			sp.Image = session['image_jpeg']
 			sp.Colonies = data['colonies'].encode('utf8')
+			#for key, value in sp.__dict__.items():
+			#	app.logger.debug(f'SP[{key}]: {value} ({type(value)})')
 			try:
 				db.session.add(sp)
 				db.session.commit()

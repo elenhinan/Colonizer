@@ -1,4 +1,11 @@
-/* CSS HEX */
+.container-colonizer {
+  width: 1000px;
+  padding-top: 15px;
+  padding-left: 0px;
+  padding-right: 0px;
+  padding-bottom: 5px;
+} 
+
 .label-text {
   width: 140px;
 }

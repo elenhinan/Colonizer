@@ -60,7 +60,7 @@ class PiHQCamera2(BaseCamera):
 		self.ready_cam()
 		self._logger.info(f"Capturing image {self._config['main']['size']}")
 		self.run_light()
-		time.sleep(0.5)
+		time.sleep(0.75)
 		image = self._cam.capture_array()
 		if self.rotation:
 			pass
