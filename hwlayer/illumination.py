@@ -16,7 +16,7 @@ class Illumination():
 	def __init__(self, app=None):
 
 		if app:
-			self.logger = app.logger
+			self.logger = current_app
 		else:
 			self.logger = None
 		# Create NeoPixel object with appropriate configuration.

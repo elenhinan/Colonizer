@@ -42,4 +42,4 @@ app.logger.info('Setting up routes...')
 # init service checker
 servicemonitor.init(app)
 
-from webdaemon import routes
+import webdaemon.routes

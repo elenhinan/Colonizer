@@ -12,7 +12,7 @@ $(document).ready(function() {
       $.ajax({
          type: "POST",
          contentType: "application/json; charset=utf-8",
-         url: "/save_image",
+         url: "/images/save",
          data: JSON.stringify({ batch: $("#batch").val() }),
          success: function (data) {
             console.log(data);

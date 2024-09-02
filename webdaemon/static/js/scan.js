@@ -50,7 +50,7 @@ $(document).ready(function() {
       $.ajax({
          type: "POST",
          contentType: "application/json; charset=utf-8",
-         url: "/scan_add",
+         url: "/settleplate/scan",
          data: JSON.stringify({ barcode: $("#barcode").val(), counts: $("#Counts").val(), colonies: cfu_export()}),
          success: function (data) {
             console.log(data);
@@ -105,7 +105,7 @@ function plate_info() {
    $.ajax({
       type: "POST",
       contentType: "application/json; charset=utf-8",
-      url: "/db/plate_info",
+      url: "/settleplate/info",
       data: JSON.stringify({ 'barcode': $("#barcode").val() }),
       success: function (data) {
          console.log(data);
