@@ -6,16 +6,14 @@ from settings import settings
 
 blueprint = Blueprint("scan",__name__,url_prefix="/settleplate")
 
-@blueprint.route('/scan', methods=['GET']) #, 'POST'])
+@blueprint.route('/scan', methods=['GET', 'POST'])
 def scan():
-	# create
-	sp = Settleplate()
-	# create form
-	form = SettleplateForm(obj=sp)
-	return render_template('scan.html', settleplate=sp, form=form, autocount=settings['general']['autocount'])
+	if request.method == 'GET':
+		sp = Settleplate()
+		form = SettleplateForm(obj=sp)
+		return render_template('scan.html', settleplate=sp, form=form, autocount=settings['general']['autocount'])
 
-@blueprint.route('/scan', methods=['POST'])
-def scan_add():
+	# else if POST
 	data = request.get_json()
 	if "barcode" in data:
 		# query for registration

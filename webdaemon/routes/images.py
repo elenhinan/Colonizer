@@ -72,15 +72,14 @@ def get_image(image_id):
 def save_image():
 	try:
 		data = request.get_json()
-		# todo get path from settings
-		path = '/mnt/petra/Data/Colonizer'
+
 		params = {
 			'user' : g.username,
 			'timestamp' : datetime.fromisoformat(session['image_timestamp']).strftime('%Y%m%d_%H%M%S'),
 			'batch_id' : data['batch']
 		}
 		filename = '{user}-{timestamp}-{batch_id}.jpg'.format(**params)
-		filepath = os.path.join(path, filename)
+		filepath = os.path.join(settings['general']['mountpoint'], filename)
 		with open(filepath,'wb') as f:
 			img_out = session['image_jpeg']
 			current_app.logger.info('Saving image to: %s (%d kB)'%(filename,len(img_out)/1024))

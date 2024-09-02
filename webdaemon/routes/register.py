@@ -6,12 +6,11 @@ from settings import settings
 
 blueprint = Blueprint("register",__name__,url_prefix="/settleplate")
 
-@blueprint.route('/register', methods=['GET'])
+@blueprint.route('/register', methods=['GET', 'POST'])
 def register():
-	return render_template('register.html')
+	if request.method == 'GET':
+		return render_template('register.html')
 
-@blueprint.route('/register_new', methods=['POST'])
-def register_new():
 	data = request.get_json()
 	data.update(Decoder.parse_input(data['serial'])) # parse serial and add result to data dictionary
 		
@@ -39,7 +38,6 @@ def batch_bydate():
 	if len(batch_id):
 		limit=25
 		results = db.session.query(Settleplate.ScanDate, Settleplate.Barcode, Settleplate.Location).filter(Settleplate.Batch.like(batch_id)).order_by(Settleplate.ScanDate.desc()).limit(limit).all()
-		if len(results):
-			response = [r._asdict() for r in results]
-			return jsonify(response)
+		response = [{'ScanDate':sp.ScanDate.strftime("%Y-%m-%d %H:%M"),'Barcode':sp.Barcode,'Location':sp.Location} for sp in results]
+		return jsonify(response)
 	return jsonify([])

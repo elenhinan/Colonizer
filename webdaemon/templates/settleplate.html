@@ -51,6 +51,11 @@
 				<button id="delete" type="submit" class="btn btn-danger" name="send" value="delete"  data-toggle="tooltip" data-placement="bottom" title="Delete"><i class="fa fa-trash"></i></button>
 			</div>
 			{% endif %}
+			{% if updated %}
+			<div class="row alert alert-success mt-3" id="commit_ok">
+				<strong>Success!</strong>&nbsp;Settleplate updated
+			</div>
+			{% endif %}
 		</div>
 	</div>
 	<div class="col mx-3">

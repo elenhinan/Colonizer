@@ -163,7 +163,7 @@ function update_table() {
    $.ajax({
       type: "POST",
       contentType: "application/json; charset=utf-8",
-      url: "/batch_bydate",
+      url: "/settleplate/batch_bydate",
       data: JSON.stringify({'batch':new_batch}),
          success: function (data) {
             batch_locations = data;
@@ -202,7 +202,7 @@ function register_new() {
       $.ajax({
          type: "POST",
          contentType: "application/json; charset=utf-8",
-         url: "/register_new",
+         url: "/settleplate/register",
          data: JSON.stringify({batch:new_batch, serial:new_serial, location:new_location}),
             success: function (data) {
                console.log(data);
