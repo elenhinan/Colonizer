@@ -155,5 +155,6 @@ function init_page() {
    $("#barcode").focus();
    $("#refresh").attr("disabled", true);
    $("#commit").attr("disabled", true);
+   cfu_clear();
    slideup_all();
 }

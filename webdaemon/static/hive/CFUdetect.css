@@ -1,22 +1,3 @@
-.img-overlay-wrap {
-   display: inline-block; /* <= shrinks container to image size */
-   transition: transform 150ms ease-in-out;
- }
- 
- .img-overlay-wrap img { /* <= optional, for responsiveness */
-    display: block;
-    max-width: 800px;
-    height: auto;
- }
- 
- .img-overlay-wrap svg {
-   position: absolute;
-   width: 100%;
-   height: 100%;
-   top: 0;
-   left: 0;
- }
-
 .CFU {
    opacity: 25%;
    transition: opacity 0.3s;

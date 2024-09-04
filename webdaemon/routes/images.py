@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 #from webdaemon import app
-from flask import Blueprint, current_app, render_template, request, session, jsonify, redirect, make_response
+from flask import Blueprint, current_app, render_template, request, session, jsonify, redirect, make_response, g
 import hwlayer.client
 from webdaemon.model import Settleplate
 from webdaemon.imagetools import *

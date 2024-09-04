@@ -12,8 +12,6 @@ def parse_string():
 	result = Decoder.parse_input(data)
 	if result is None:
 		return jsonify({})
-	if 'user' in result:
-		g.username = result['user']
 	if 'batch' in result:
 		session['batch'] = result['batch']
 	if 'serial' in result:
