@@ -26,7 +26,7 @@ def capture_image(capture_settings={}) -> Tuple[bool, np.ndarray]:
 
     # request image
     request = capture_settings.copy()
-    request['CMD'] = 'array'
+    request['CMD'] = 'capture'
 
     try:
         # send

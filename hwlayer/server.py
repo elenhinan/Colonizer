@@ -3,6 +3,8 @@ import logging
 import logging.handlers
 import zmq
 import time
+#from settings import settings
+from hwlayer.illumination import illumination
 
 # setup logging
 log_root = logging.getLogger()
@@ -50,6 +52,7 @@ def main():
    while True:
       if socket.poll(timeout):
          request = socket.recv_json()
+         request.setdefault('resolution', None)
          cmd = request.pop('CMD')
 
          if cmd == 'ready':
@@ -60,22 +63,25 @@ def main():
             socket.send_json(response)
             continue
 
-         request.setdefault('wb', [None, None])
-         request.setdefault('light', None)
-         request.setdefault('exposure', None)
-         request.setdefault('resolution', None)
-         request.setdefault('hflip', False)
-         request.setdefault('vflip', False)
-         request.setdefault('rotation', None)
-         request.setdefault('crop', None)
-         request.setdefault('color', [92,92,92])
+         if cmd == 'status':
+            illumination.set_status(request['status'])
+            illumination.run()
+            response = {
+               'msg' : 'ok'
+            }
+            socket.send_json(response)
+            continue
 
-         # time capture
-         t0 = time.time_ns()
+         #for key, value in settings['camera'].items():
+         #    request.setdefault(key, value)
 
-         # check if settings changed
-         if request != prev_request:
-               camera.set_light(request['light'],request['color'])
+         # if capturing array
+         if cmd == 'capture':
+            # time capture
+            t0 = time.time_ns()
+
+            # check if settings changed
+            if request != prev_request:
                camera.set_exposure(request['exposure'])
                camera.set_whitebalance(request['wb'][0],request['wb'][1])
                camera.set_crop(request['crop'])
@@ -83,34 +89,27 @@ def main():
                camera.set_flip(request['hflip'], request['vflip'])
                camera.set_rotation(request['rotation'])
                prev_request = request
-         
-         # if capturing array
-         try:
-               if cmd == 'array':
-                  log.debug(request)
-                  image = camera.capture_array()
-                  response = {
-                     'msg:'  : 'ok',
-                     'dtype' : str(image.dtype),
-                     'shape' : image.shape
-                  }
-                  socket.send_json(response, flags=zmq.SNDMORE)
-                  socket.send(image, copy=True)
-                  t1 = time.time_ns()
-                  log.debug(f"Response time {(t1-t0)*1e-6:.0f} ms")
-               elif cmd == 'jpeg':
-                  log.debug(request)
-                  data = camera.capture_jpeg()
-                  response = {
-                     'msg'   : 'ok',
-                     'dtype' : 'jpeg'
-                  }
-                  socket.send_json(response, flags=zmq.SNDMORE)
-                  socket.send(data, copy=True)
-                  t1 = time.time_ns()
-                  log.debug(f"Response time {(t1-t0)*1e-6:.0f} ms")
+
+            try:
+               log.debug(request)
+               illumination.set_top(request['led_top'])
+               illumination.set_ring(request['led_ring'])
+               illumination.run()
+               time.sleep(request['wait'])
+               image = camera.capture_array()
+               illumination.clear()
+               response = {
+                  'msg:'  : 'ok',
+                  'dtype' : str(image.dtype),
+                  'shape' : image.shape
+               }
+               socket.send_json(response, flags=zmq.SNDMORE)
+               socket.send(image, copy=True)
+
+               t1 = time.time_ns()
+               log.debug(f"Response time {(t1-t0)*1e-6:.0f} ms")
                   
-         except Exception as e:
+            except Exception as e:
                logging.error(e)
                response = {
                   'msg'   : 'error',
@@ -122,9 +121,13 @@ def main():
       camera.update()
 
 if __name__ == '__main__':
-    start_socket()
-    start_camera()
-    try:
-        main()
-    except KeyboardInterrupt:
-        log.info("Shutting down")
+   # load settings
+   illumination.clear()
+   illumination.set_status([255,0,0])
+   illumination.run()
+   start_socket()
+   start_camera()
+   try:
+      main()
+   except KeyboardInterrupt:
+      log.info("Shutting down")

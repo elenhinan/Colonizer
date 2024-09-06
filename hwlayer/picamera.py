@@ -1,6 +1,7 @@
-import time
 import logging
 import numpy as np
+import time
+from io import BytesIO
 from picamera2 import Picamera2
 from libcamera import Transform, Rectangle
 from hwlayer.base import BaseCamera
@@ -59,22 +60,16 @@ class PiHQCamera2(BaseCamera):
 	def capture_array(self):
 		self.ready_cam()
 		self._logger.info(f"Capturing image {self._config['main']['size']}")
-		self.run_light()
-		time.sleep(0.75)
 		image = self._cam.capture_array()
 		if self.rotation:
 			pass
-		self.stop_light()
 		return image
 
 	def capture_jpeg(self):
 		self.ready_cam()
 		self._logger.info(f"Capturing image {self._config['main']['size']}")
 		stream = BytesIO()
-		self.run_light()
-		time.sleep(0.4)
 		self._cam.capture_file(stream, format='jpeg')        
-		self.stop_light()
 		return stream.getbuffer().tobytes()
 			
 	def set_exposure(self, exp):

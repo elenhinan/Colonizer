@@ -13,12 +13,9 @@ LED_TOP = 45
 LED_OFF = [0,0,0]
 
 class Illumination():
-	def __init__(self, app=None):
+	def __init__(self):
 
-		if app:
-			self.logger = current_app
-		else:
-			self.logger = None
+		self._logger = None
 		# Create NeoPixel object with appropriate configuration.
 		self.n_leds = LED_STATUS+LED_RING+LED_TOP
 		
@@ -38,21 +35,19 @@ class Illumination():
 		# ensure all leds are off
 		self.clear()
 
-	def top(self, color, duration:float=0):
-		self.stop()
-		self.strip.fill(LED_OFF)
+	def set_status(self, color):
+		for i in self.segment['status']:
+			self.strip[i] = color
+
+	def set_top(self, color):
 		for i in self.segment['top']:
 			self.strip[i] = color
-		self.strip.show()
-		if duration > 0:
-			self._timer.interval = duration
-			self._timer.start()
 
-	def ring(self, color, duration:float=0):
-		self.stop()
-		self.strip.fill(LED_OFF)
+	def set_ring(self, color):
 		for i in self.segment['ring']:
 			self.strip[i] = color
+
+	def run(self, duration:int = 0):
 		self.strip.show()
 		if duration > 0:
 			self._timer.interval = duration
@@ -119,7 +114,8 @@ class Illumination():
 	
 	def clear(self):
 		self.stop()
-		self.strip.fill((0,0,0))
+		self.set_top(LED_OFF)
+		self.set_ring(LED_OFF)
 		self.strip.show()
 		
 illumination = Illumination()

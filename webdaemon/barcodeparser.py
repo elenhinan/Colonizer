@@ -9,10 +9,10 @@ class _BarcodeParser():
 		#self.logger = generate_logger("DAEMON")
 		# compile regexp
 		self.regex_patterns = []
-		self.init_regexp()
+		self.update_regexp()
 		self.string_pattern = re.compile(r"[^\w:\-_]")
 
-	def init_regexp(self):
+	def update_regexp(self):
 		self.regex_patterns.clear()
 		for pattern in ['user', 'batch', 'location', 'settleplate']:
 			for regex in settings['regex'][pattern]:

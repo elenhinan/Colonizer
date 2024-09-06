@@ -1,6 +1,6 @@
 // initialize on load
 const image_placeholder = "/static/settleplate.svg"
-const image_capture = "/images/live?mode=ring"
+const image_capture = "/images/live?mode=settleplate"
 var image_src = "";
 
 $(document).ready(function() {

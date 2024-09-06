@@ -95,3 +95,25 @@ tr.table-subheader td{
   bottom:2px;
   left:2px;
 }
+
+#camera {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  background-color: black;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-image: url("/static/spinner_black.gif");
+}
+
+#camera img {
+  border-radius: 6px;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  overflow: hidden;
+}
+
+.camera-loading img {
+  visibility: hidden;
+}

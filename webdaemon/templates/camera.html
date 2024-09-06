@@ -2,34 +2,49 @@
 
 {% block page_content %}
 
-<div class="col">
-	<div class="row form-group">
-		<div class="input-group">
-			<div class="input-group-prepend">
-				<label class="input-group-text" style="width: 90px;">Batch ID</label>
+<div class="row">
+	<div class="col mx-3">
+		<div class="row form-group">
+			<div class="input-group">
+				<div class="input-group-prepend">
+					<label class="input-group-text" style="width: 90px;">Batch ID</label>
+				</div>
+				<input type="text" class="form-control" id="batch" autofocus autocomplete="off" placeholder="&lt;batch id&gt;">
 			</div>
-			<input type="text" class="form-control" id="batch" autofocus autocomplete="off" placeholder="&lt;batch id&gt;">
+		</div>
+		<div class="row form-group">
+			<div class="input-group">
+				<div class="input-group-prepend">
+					<label class="input-group-text" style="width: 90px;">Mode</label>
+				</div>
+				<select class="form-control" id="mode" autofocus autocomplete="off" placeholder="&lt;batch id&gt;">
+					{% for m in modes %}
+						<option value="{{m}}" {{'selected' if (m == selected) else ''}}>{{m}}</option>
+					{% endfor %}
+				</select>
+			</div>
+		</div>
+		<div class="row mb-3">
+			<button id="refresh" type="button" class="btn mr-3 btn-secondary">Refresh</button>
+			<button id="save" type="button" class="btn btn-secondary">Save</button>
+		</div>
+
+		<div class="row alert alert-warning" id="save_wait" style="display: none;">
+			<strong>Please wait!</strong>&nbsp;Saving image
+		</div>
+
+		<div class="row alert alert-danger" id="save_fail" style="display: none;">
+			<strong>Error!</strong>&nbsp;Failed to save image
+		</div>
+
+		<div class="row alert alert-success" id="save_ok" style="display: none;">
+			<strong>Success!</strong>&nbsp;Saved image to disk
 		</div>
 	</div>
-	<div class="row mb-3">
-		<img id="image" class="img-responsive" src="/images/live?mode=top"
-			style="height:600px;max-width:100%;object-fit:contain;background:black">
-	</div>
-	<div class="row mb-3">
-		<button id="refresh" type="button" class="btn mr-3 btn-secondary">Refresh</button>
-		<button id="save" type="button" class="btn btn-secondary">Save</button>
-	</div>
-
-	<div class="row alert alert-warning" id="save_wait" style="display: none;">
-		<strong>Please wait!</strong>&nbsp;Saving image
-	</div>
-
-	<div class="row alert alert-danger" id="save_fail" style="display: none;">
-		<strong>Error!</strong>&nbsp;Failed to save image
-	</div>
-
-	<div class="row alert alert-success" id="save_ok" style="display: none;">
-		<strong>Success!</strong>&nbsp;Saved image to disk
+	<div class="col mx-3">
+		<div id="camera" class="row mb-3">
+		<img id="camera-img" src="">
+		</div>
 	</div>
 </div>
 
