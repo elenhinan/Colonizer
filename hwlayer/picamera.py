@@ -1,5 +1,4 @@
 import logging
-import numpy as np
 import time
 from io import BytesIO
 from picamera2 import Picamera2
@@ -63,6 +62,7 @@ class PiHQCamera2(BaseCamera):
 		image = self._cam.capture_array()
 		if self.rotation:
 			pass
+			#image = np.rot90(np.copy(image,order='C'), k=self.rotation, axes=(0,1))
 		return image
 
 	def capture_jpeg(self):

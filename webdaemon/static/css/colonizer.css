@@ -79,7 +79,7 @@ tr.table-subheader td{
    top:0;
    left:0;
    width:100%;
-   border-radius: 50%;
+   border-radius: 6px;
 }
 
 .img-overlay-wrap #overlay {
@@ -92,8 +92,8 @@ tr.table-subheader td{
 
 .img-overlay-wrap .btn-group {
   position:absolute;
-  bottom:2px;
-  left:2px;
+  bottom:6px;
+  left:6px;
 }
 
 #camera {

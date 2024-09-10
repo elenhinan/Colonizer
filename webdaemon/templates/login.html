@@ -17,14 +17,13 @@
             <input type="password" class="form-control" id="pwd" name="password" autocomplete="off">
          </div>
          <button type="submit" class="btn btn-primary form-group" style="width: 90px;">Login</button>
-      </div>
-      {% if error %}
-      <div class="alert alert-warning mt-3">
-         <strong>Error!</strong> {{ error }}
-      </div>
-      {% endif %}
       </form>
    </div>
+   {% if error %}
+   <div class="alert alert-warning mt-3">
+      <strong>Error!</strong> {{ error }}
+   </div>
+   {% endif %}
 </div>
 
 {% endblock %}

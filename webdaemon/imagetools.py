@@ -167,3 +167,14 @@ def auto_landscape(img):
    else:
       return img
    
+def rotate_image(image, rotation):
+   rotation = rotation.lower()
+   if rotation == 'cw':
+      dir = cv2.ROTATE_90_CLOCKWISE
+   elif rotation == 'ccw':
+      dir = cv2.ROTATE_90_COUNTERCLOCKWISE
+   elif rotation == '180':
+      dir = cv2.ROTATE_180
+   else:
+      return image
+   return cv2.rotate(image, dir)

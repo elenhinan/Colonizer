@@ -65,11 +65,16 @@
 				</tbody>
 			</table>
 		</div>
-		<div class="row">
-			<div class="alert alert-warning" id="sameuser_error" style="display: none; width: 100%">
-				<strong>Warning!</strong> Same user scanning as registering plate!
-			</div>
+		<div class="row alert alert-warning" id="sameuser_error" style="display: none;">
+			<strong>Warning!</strong> Same user scanning as registering plate!
 		</div>
+		<div class="row alert alert-danger" id="commit_fail" style="display: none;">
+			<strong>Error!</strong>&nbsp;Failed to commit image to DB
+		</div>
+		<div class="row alert alert-success" id="commit_ok" style="display: none;">
+			<strong>Success!</strong>&nbsp;Image committed to DB
+		</div>
+
 	</div>
 	<div class="col mx-3">
 		<div class="row mb-3">
@@ -94,17 +99,6 @@
 					<button id="refresh" type="button" class="btn btn-secondary"><i class="fa fa-camera"></i></button>
 					<button id="commit" type="button" class="btn btn-secondary"><i class="fa fa-save"></i></button>
 				</div>
-			</div>
-		</div>
-		<div class="row mt-3">
-			<div class="row alert alert-warning" id="commit_wait" style="display: none;">
-				<strong>Please wait!</strong>&nbsp;Committing image to DB
-			</div>
-			<div class="row alert alert-danger" id="commit_fail" style="display: none;">
-				<strong>Error!</strong>&nbsp;Failed to commit image to DB
-			</div>
-			<div class="row alert alert-success" id="commit_ok" style="display: none;">
-				<strong>Success!</strong>&nbsp;Image committed to DB
 			</div>
 		</div>
 	</div>

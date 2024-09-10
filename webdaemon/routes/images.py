@@ -25,6 +25,8 @@ def live():
 
 	if success:
 		# process image
+		if capture_settings['rotation']:
+			image = rotate_image(image, capture_settings['rotation'])
 		if capture_settings['autocrop'] == 'ring':
 			image = autocrop_ring(image)
 		elif capture_settings['autocrop'] == 'rect':

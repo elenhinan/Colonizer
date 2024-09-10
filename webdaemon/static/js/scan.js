@@ -46,7 +46,6 @@ $(document).ready(function() {
       $("#commit").attr("disabled", true);
       $("#Counts").attr('readonly', true);
       $("#commit").blur();
-      $("#commit_wait").slideDown();
       $.ajax({
          type: "POST",
          contentType: "application/json; charset=utf-8",
@@ -54,7 +53,6 @@ $(document).ready(function() {
          data: JSON.stringify({ barcode: $("#barcode").val(), counts: $("#Counts").val(), colonies: cfu_export()}),
          success: function (data) {
             console.log(data);
-            $("#commit_wait").slideUp();
             if (data.committed == true) {
                $("#commit_fail").slideUp();
                $("#commit_ok").html(`<strong>Success!</strong> Image commitd to DB`)
@@ -101,7 +99,6 @@ function decode_text(text_input) {
 }
 
 function plate_info() {
-   //$("#loading").modal('show')
    $.ajax({
       type: "POST",
       contentType: "application/json; charset=utf-8",
@@ -126,7 +123,6 @@ function plate_info() {
                $("#sameuser_error").slideDown();
             }
          }
-         //$("#loading").modal('hide')
       },
       dataType: "json"
    });

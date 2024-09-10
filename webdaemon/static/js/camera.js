@@ -23,7 +23,6 @@ function on_load() {
 }
 
 function save_image() {
-   $("#save_wait").slideDown();
    $.ajax({
       type: "POST",
       contentType: "application/json; charset=utf-8",
@@ -31,7 +30,6 @@ function save_image() {
       data: JSON.stringify({ batch: $("#batch").val() }),
       success: function (data) {
          console.log(data);
-         $("#save_wait").slideUp();
          if (data.saved == true) {
             $("#save_fail").slideUp();
             $("#save_ok").html(`<strong>Success!</strong> Image saved to <i>${data.filename}</i>`)

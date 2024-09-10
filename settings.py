@@ -52,10 +52,11 @@ class Settings(FileSystemEventHandler):
 				self._data = json.load(f)
 			if self._logger:
 				self._logger.info(f"Settings loaded from {filepath}")
+			return True
 		except:
 			if self._logger:
 				self._logger.info(f"Error loading settings from {filepath}")
-			self.load('./default.json')
+			return False
 
 	def save(self):
 		# do not trigger event on this change
