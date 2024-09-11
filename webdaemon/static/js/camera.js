@@ -2,8 +2,7 @@ const image_capture = "/images/live"
 
 function refresh_image() {
    let url=image_capture + "?mode=" + $("#mode").val() + "&" +new Date().getTime();
-   //$("#camera").css("background-image", `url(${url}`);
-   $("#camera").addClass("camera-loading")
+   $("#camera").addClass("imageview-loading")
    $("#camera-img").attr("src", "");
    $("#camera-img").attr("src", url);
 }
@@ -19,7 +18,7 @@ $(document).ready(function() {
 });
 
 function on_load() {
-   $("#camera").removeClass("camera-loading");
+   $("#camera").removeClass("imageview-loading");
 }
 
 function save_image() {

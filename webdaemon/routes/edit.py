@@ -2,6 +2,7 @@ from datetime import datetime
 from flask import Blueprint, current_app, render_template, request, redirect, url_for, g, abort
 from webdaemon.model import Settleplate, SettleplateForm
 from webdaemon.database import db
+from settings import settings
 
 blueprint = Blueprint("edit",__name__,url_prefix="/settleplate")
 
@@ -14,8 +15,8 @@ def edit_settleplate(settleplate_id):
 
 	# do user have access to change/delete this?
 	# must either be admin, or creator withing 30 minutes
-	age = (datetime.now()-sp.ScanDate).total_seconds() / 60
-	readonly = not (g.isAdmin or (sp.Username == g.username and age < 30))
+	age = (datetime.now()-sp.ScanDate).total_seconds()
+	readonly = not (g.isAdmin or (sp.Username == g.username and age < settings['general']['grace_period']))
 
 	# create form
 	form = SettleplateForm(obj=sp)

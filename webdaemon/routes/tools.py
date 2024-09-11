@@ -1,4 +1,4 @@
-from flask import Blueprint, current_app, request, jsonify, session
+from flask import Blueprint, current_app, request, jsonify, session, g
 from webdaemon.model import Settleplate
 from webdaemon.database import db
 from webdaemon.barcodeparser import Decoder
@@ -18,6 +18,6 @@ def parse_string():
 		result['used'] = len(db.session.query(Settleplate.ScanDate).filter(Settleplate.Barcode.like(result['serial'])).all())
 	return jsonify(result)
 
-@blueprint.route('/status', methods=(['GET']))
-def status():
-	return jsonify(servicemonitor.status)
+@blueprint.before_app_request
+def include_status():
+	g.status = servicemonitor.status

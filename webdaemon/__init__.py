@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 import logging
 from redis import Redis
 from flask import Flask
@@ -13,7 +14,9 @@ app = Flask(__name__)
 app.logger.setLevel(logging.INFO)
 
 # load settings
-settings.init('testing', app)
+config_file = os.environ.get('SETTLEPLATE_CONFIG','default')
+if not settings.init(config_file, app):
+   exit(1)
 
 # config
 app.config['SECRET_KEY'] = get_secret(),
@@ -26,7 +29,7 @@ app.config['SESSION_TYPE'] = 'redis'
 app.config['SESSION_REDIS'] = Redis(host='localhost', port=6379)
 app.config['SESSION_COOKIE_SAMESITE'] = "Strict"
 app.config['SESSION_COOKIE_NAME'] = 'Colonizer-App'
-app.config['PERMANENT_SESSION_LIFETIME'] = 60*24*60#settings['general']['timeout']
+app.config['PERMANENT_SESSION_LIFETIME'] = settings['general']['timeout']
 Session(app)
 
 # initialize database
