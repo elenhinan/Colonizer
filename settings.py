@@ -24,7 +24,7 @@ class Settings(FileSystemEventHandler):
 		if app is not None:
 			self._logger = app.logger
 		self.set_path(os.path.join('./config',f'{filename}.json'))
-		self.load()
+		return self.load()
 
 	def __getitem__(self, name: str) -> dict:
 		return self._data[name]
