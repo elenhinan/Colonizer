@@ -1,0 +1,28 @@
+#user colonizer colonizer;
+#pid /var/run/colonizer/nginx.pid;
+
+upstream gunicorn_server_testing {
+   # for UNIX domain socket setups
+   server unix:/app/Colonizer-testing/run/colonizer.sock fail_timeout=0;
+}
+
+server {
+   listen 8080;
+   server_name _;
+
+   location /static {
+      alias /app/Colonizer-testing/webdaemon/static/;
+   }
+
+   location ~* ^/(?:favicon|apple-touch-icon|android-chrome-|mstile-|safari-pinned-tab.svg|browserconfig.xml|manifest.json) {
+      root /app/Colonizer-testing/webdaemon/static/favicon;
+   }
+
+   location / {
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_set_header Host $http_host;
+      proxy_redirect off;
+      proxy_pass http://gunicorn_server_testing;
+   }
+}

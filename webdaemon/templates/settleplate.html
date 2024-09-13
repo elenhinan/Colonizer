@@ -7,7 +7,9 @@
 	{{ super() }}
 	<script src="/static/tensorflow/tf.min.js"></script>
 	<script src="/static/hive/CFUdraw.js"></script>
+	{% if not readonly %}
 	<script src="/static/hive/CFUdetect.js"></script>
+	{% endif %}
 	<script>
 		$(document).ready(function() {
 			// zoom in on image on click
