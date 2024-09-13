@@ -33,6 +33,6 @@ def page_not_found(e):
 	return render_template('404.html'), 404
 
 # test server
-@app.before_request()
+@app.before_request
 def test_server_check():
 	g.testserver = settings['general']['testserver']

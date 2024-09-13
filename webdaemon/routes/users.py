@@ -8,7 +8,7 @@ blueprint = Blueprint("users",__name__)
 # Login dialog
 # login check
 @blueprint.before_app_request
-def login_check(admin=False):
+def login_check():
 	session.modified = True
 
 	g.username = session.get('user')
