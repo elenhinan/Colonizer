@@ -1,6 +1,7 @@
 from webdaemon import app
 
-from flask import render_template, redirect, url_for
+from flask import render_template, redirect, url_for, g
+from settings import settings
 
 from . import admin
 from . import edit
@@ -30,3 +31,8 @@ def index():
 def page_not_found(e):
 	# note that we set the 404 status explicitly
 	return render_template('404.html'), 404
+
+# test server
+@app.before_request()
+def test_server_check():
+	g.testserver = settings['general']['testserver']

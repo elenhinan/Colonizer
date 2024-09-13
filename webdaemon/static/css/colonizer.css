@@ -107,3 +107,9 @@ tr.table-subheader td{
 .imageview.imageview-loading img {
   visibility: hidden;
 }
+
+.testserver body {
+  background: #7b6a54 !important;
+}
+
+

@@ -20,7 +20,7 @@
         <title>{% block title %} Colonizer {% endblock %}</title>
         {% endblock %}
     </head>
-    <body>
+    <body {% 'class="testserver"' if g.testserver %}>
         <!-- Your page content -->
         {% block content %}{% endblock %}
         {% block scripts %}
