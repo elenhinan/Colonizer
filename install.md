@@ -39,7 +39,7 @@ wget -nv ftp://ftp.freetds.org/pub/freetds/stable/freetds-patched.tar.gz \
 && sudo odbcinst -i -d -f unixodbc.freetds.driver.template
 
 # install bootstrap 4.6
-BOOTSTRAP_DIR=$INSTALL_DIR/webdaemon/static/jquery
+BOOTSTRAP_DIR=$INSTALL_DIR/webdaemon/static/bootstrap
 mkdir -p $BOOTSTRAP_DIR
 wget https://github.com/twbs/bootstrap/archive/v4.6.2.zip
 unzip v4.6.2.zip

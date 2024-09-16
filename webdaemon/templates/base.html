@@ -10,6 +10,9 @@
             <link rel="stylesheet" href="/static/css/bootstrap_themed.css">
             <link rel="stylesheet" href="/static/fontawesome/css/all.css">
             <link rel="stylesheet" href="/static/css/colonizer.css">
+            {% if g.testserver %}
+            <link rel="stylesheet" href="/static/css//colonizer_test.css">
+            {% endif %}
         {% endblock %}
         <!-- FavIcon stuff-->
         <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png">
@@ -20,7 +23,7 @@
         <title>{% block title %} Colonizer {% endblock %}</title>
         {% endblock %}
     </head>
-    <body {% 'class="testserver"' if g.testserver %}>
+    <body>
         <!-- Your page content -->
         {% block content %}{% endblock %}
         {% block scripts %}
