@@ -16,6 +16,7 @@
 				if ($(this).attr("src") == image_src) {
 					cfu_detect();
 					$("#commit").attr("disabled", false);
+					$("#commit").trigger("focus");
 				}
 			});
 		});

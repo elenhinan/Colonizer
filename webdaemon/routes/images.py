@@ -27,14 +27,15 @@ def live():
 		# process image
 		if capture_settings['rotation']:
 			image = rotate_image(image, capture_settings['rotation'])
+		if capture_settings['mask']:
+			image = mask_image(image)
 		if capture_settings['autocrop'] == 'ring':
 			image = autocrop_ring(image)
 		elif capture_settings['autocrop'] == 'rect':
 			image = autocrop_rect(image)
-		elif capture_settings['mask']:
-			image = mask_image(image)
 		elif capture_settings['drawmask']:
 			image = draw_mask(image)
+
 
 		#session['image'] = image
 		session['image_jpeg'] = to_jpg(image)
@@ -81,7 +82,7 @@ def save_image():
 			'batch_id' : data['batch']
 		}
 		filename = '{user}-{timestamp}-{batch_id}.jpg'.format(**params)
-		filepath = os.path.join(settings['general']['mountpoint'], filename)
+		filepath = os.path.join(settings['general']['savepath'], filename)
 		with open(filepath,'wb') as f:
 			img_out = session['image_jpeg']
 			current_app.logger.info('Saving image to: %s (%d kB)'%(filename,len(img_out)/1024))

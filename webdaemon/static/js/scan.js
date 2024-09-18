@@ -31,14 +31,13 @@ $(document).ready(function() {
       // as no-cache is ignored by browser, using cache-breaker
       image_src = image_capture + "&" +new Date().getTime();
       $("#image").attr("src", image_src);
-      $("#Counts").focus();
       $("#Counts").attr("readonly", false);
    });
 
-   $("#Counts").change(function () {
+   $("#Counts").change(function (e) {
       $("#refresh").attr("disabled", true);
       $("#commit").attr("disabled", false);
-      $("#commit").focus();
+      $("#commit").trigger("focus");
    });
 
    // commit image to db on click

@@ -98,3 +98,10 @@ sudo chmo 770 /mnt/data
 sudo chown colonizer:www-data -R $INSTALL_DIR
 sudo find $INSTALL_DIR -type f -exec chmod 640 {} \;
 sudo find $INSTALL_DIR -type d -exec chmod 750 {} \;
+
+# setup watchdog
+sudo apt install watchdog
+sudo cp install/etc/watchdog.conf /etc/watchdog.conf
+sudo chown root:root /etc/watchdog.conf
+sudo chown root:root $INSTALL_DIR/repair.sh
+sudo chmod 700 $INSTALL_DIR/repair.sh
