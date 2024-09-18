@@ -18,13 +18,16 @@ def login_check():
 		return
 
 	if g.username is None and request.endpoint not in ['users.login', 'users.logout']:
+		session['login_redirect'] = request.url
 		return redirect(url_for('users.login'))
-
-	
 	
 @blueprint.route('/login', methods=['GET', 'POST'])
 def login():
 	error = ''
+
+	if g.username is not None:
+		return redirect(url_for('index'))
+	
 	if request.method == 'POST':
 		username = request.form['username']
 		password = request.form['password']
@@ -33,7 +36,12 @@ def login():
 			session['user'] = username
 			session['user_time'] = datetime.now()
 			current_app.logger.info(f"User {session['user']} logged in")
-			return redirect(url_for('index'))
+			next_page = session['login_redirect']
+			if next_page is None:
+				return redirect(url_for('index'))
+			else:
+				session['login_redirect'] = None
+				return redirect(next_page)
 		else:
 			current_app.logger.error(f"Wrong password for user {username}")
 			session['user'] = None

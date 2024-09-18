@@ -1,13 +1,20 @@
+#!/bin/bash
+
 # quit if any step fail
 set -e
 
 INSTALL_DIR=/app/Colonizer
+echo Installing into $INSTALL_DIR
 
 # check if root
 if [ "$EUID" -ne 0 ]
   then echo "Please run as root"
   exit
 fi
+
+# update apt
+apt update
+apt install upgrade -y
 
 # install via apt
 apt install -y python3-pip python3-opencv
@@ -86,22 +93,23 @@ $INSTALL_DIR/sass/sass scss/bs_theme.scss css/bootstrap_themed.css
 mkdir -p /mnt/data
 
 # setup auto-remount in crontab
-sudo crontab -e
+crontab -e
 add "*/5 * * * * grep -q "/mnt/petra" /proc/mounts || sudo mount /mnt/petra"
-sudo pico /etc/fstab
-add "//yourfileserver/sharename  /mnt/data      cifs    noserverino,credentials=/home/pi/.smbcredentials    0    0"
+pico /etc/fstab
+add "#//yourfileserver/sharename  /mnt/data      cifs    uid=colonizer,iocharset=utf8,file_mode=0700,dir_mode=0700,noserverino,credentials=/home/pi/.smbcredentials    0    0"
 add "username=<username>\npassword=<password>" to ~/.smbcredentials
 
 # set permissions
-sudo chown colonizer:www-data /mnt/data
-sudo chmo 770 /mnt/data
-sudo chown colonizer:www-data -R $INSTALL_DIR
-sudo find $INSTALL_DIR -type f -exec chmod 640 {} \;
-sudo find $INSTALL_DIR -type d -exec chmod 750 {} \;
+chown colonizer:www-data /mnt/data
+chmod 770 /mnt/data
+chown colonizer:www-data -R $INSTALL_DIR
+find $INSTALL_DIR -type f -exec chmod 640 {} \;
+find $INSTALL_DIR -type d -exec chmod 750 {} \;
 
 # setup watchdog
-sudo apt install watchdog
-sudo cp install/etc/watchdog.conf /etc/watchdog.conf
-sudo chown root:root /etc/watchdog.conf
-sudo chown root:root $INSTALL_DIR/repair.sh
-sudo chmod 700 $INSTALL_DIR/repair.sh
+apt install watchdog
+cd $INSTALL_DIR
+cp install/etc/watchdog.conf /etc/watchdog.conf
+chown root:root /etc/watchdog.conf
+chmod +x repair.sh
+systemctl enable watchdog
