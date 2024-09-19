@@ -107,3 +107,34 @@ tr.table-subheader td{
 .imageview.imageview-loading img {
   visibility: hidden;
 }
+
+@font-face {
+  font-family: joystix;
+  src: url("/static/fonts/joystix_monospace.otf");
+}
+
+.hiscore {
+  font-family: monospace;
+  background-color: black;
+  text-align: center;
+}
+
+.hiscore a {
+  font-family: joystix;
+  color:cadetblue;
+}
+
+.hiscore-period {
+  color:aquamarine;
+  font-size: 2.0em;
+  font-family: joystix;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.hiscore-header {
+  color:aqua;
+  display: block;
+  white-space: pre;  
+  white-space-collapse: preserve;
+}

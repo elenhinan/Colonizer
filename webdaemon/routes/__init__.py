@@ -11,6 +11,7 @@ from . import register
 from . import scan
 from . import tools
 from . import users
+from . import hiscore
 
 app.register_blueprint(admin.blueprint)
 app.register_blueprint(edit.blueprint)
@@ -20,6 +21,7 @@ app.register_blueprint(register.blueprint)
 app.register_blueprint(scan.blueprint)
 app.register_blueprint(tools.blueprint)
 app.register_blueprint(users.blueprint)
+app.register_blueprint(hiscore.blueprint)
 
 # default page
 @app.route('/')
