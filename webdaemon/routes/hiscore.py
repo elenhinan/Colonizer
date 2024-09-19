@@ -46,7 +46,7 @@ def hiscore(when:str):
    
    # use subquery to look up settleplates at registration date, sorted by number of counts
    query = db.session.query(Settleplate.ID, Settleplate.ScanDate, Settleplate.Username, Settleplate.Location, subquery.c.max_counts)
-   query = query.join(subquery, and_(barcode_cast == subquery.c.Barcode, Settleplate.Counts == -1)).order_by(subquery.c.max_counts.desc())
+   query = query.join(subquery, and_(barcode_cast == subquery.c.Barcode, Settleplate.Counts == subquery.c.max_counts)).order_by(subquery.c.max_counts.desc())
 
    results = query.all()
    return render_template('hiscore.html', settleplates=results, period=period)
