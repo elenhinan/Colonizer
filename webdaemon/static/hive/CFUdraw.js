@@ -78,7 +78,7 @@ function cfu_add(cfu) {
       group.addClass('CFU-positive')
    )
 
-   $('#overlay').append(group)
+   $('#overlay').append(group);
 }
 
 function cfu_update_counts() {

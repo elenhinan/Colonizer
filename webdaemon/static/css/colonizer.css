@@ -115,16 +115,20 @@ tr.table-subheader td{
 
 .hiscore {
   font-family: monospace;
-  background-color: black;
+  /*background-color: black;*/
+  /*background-color: transparent;*/
   text-align: center;
+  position: relative;
 }
 
 .hiscore a {
+  position: relative;
   font-family: joystix;
   color:cadetblue;
 }
 
 .hiscore-period {
+  position: relative;
   color:aquamarine;
   font-size: 2.0em;
   font-family: joystix;
@@ -133,8 +137,22 @@ tr.table-subheader td{
 }
 
 .hiscore-header {
+  position: relative;
   color:aqua;
   display: block;
   white-space: pre;  
   white-space-collapse: preserve;
+}
+
+.hiscore svg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background-color: black;
+}
+
+#starfield rect {
+  fill:lightslategrey;
 }

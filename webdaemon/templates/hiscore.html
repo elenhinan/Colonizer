@@ -5,6 +5,7 @@
 	<source src="/static/2021-08-17_-_8_Bit_Nostalgia_-_www.FesliyanStudios.com.mp3" type="audio/mpeg">
 </audio>
 <div class="hiscore">
+<svg viewBox="0 0 1 1" preserveAspectRatio="xMidYMid slice" id="starfield" xmlns="http://www.w3.org/2000/svg"></svg>
 <div class="hiscore-header">
 
  ██░ ██  ██▓  ▄████  ██░ ██   ██████  ▄████▄   ▒█████   ██▀███  ▓█████ 
@@ -26,4 +27,51 @@
 {% endfor %}
 <br>
 </div>
+<script>
+var n=50;
+var fps=30;
+var stars=new Array(n);
+var size=0.005;
+var speed=1.01;
+
+function init_stars() {
+   for (let i=0; i<100; i++) {
+      stars[i] = new Array(3);
+      gen_star(i,1);
+   }
+}
+
+function gen_star(i,f) {
+   stars[i][0] = (Math.random() - 0.5)*f; // x-position
+   stars[i][1] = (Math.random() - 0.5)*f; // y-position
+   stars[i][2] = Math.random()/2 + 1.0; // size
+}
+
+function update_stars() {
+   let oldsvg = document.getElementById("starfield");
+   let newsvg = oldsvg.cloneNode();
+   for(let i=0; i<n; i++) {
+      let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      if (Math.abs(stars[i][0]) > 1 || Math.abs(stars[i][1]) > 1) {
+         gen_star(i,0.1);
+      }
+      var x = stars[i][0] * speed;
+      var y = stars[i][1] * speed;
+      var s = Math.sqrt(x**2 + y**2)*size*stars[i][2];
+      rect.setAttribute('x', (x+0.5).toFixed(4));
+      rect.setAttribute('y', (y+0.5).toFixed(4));
+      rect.setAttribute('width', size);
+      rect.setAttribute('height', size);
+      stars[i][0] = x;
+      stars[i][1] = y;
+
+      newsvg.append(rect);
+   }
+   oldsvg.replaceWith(newsvg);
+}
+
+init_stars();
+setInterval(update_stars, fps/1000);
+
+</script>
 {% endblock %}
