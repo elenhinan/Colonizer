@@ -5,7 +5,6 @@ from settings import settings
 from datetime import datetime, timedelta
 import os
 import hwlayer.client
-import atexit
 
 class ServiceMonitor(Timer):
 	sleeptimer = 600
@@ -15,11 +14,11 @@ class ServiceMonitor(Timer):
 		self._status = {
 			'sql': False,
 			'camera': False,
-			'share': False
+			'storage': False
 		}
 		self._lastaccess = datetime.now()
-		atexit.register(self.cancel)
 		super().__init__(self.interval, self.check_services)
+		self.daemon = True
 
 	@property
 	def status(self):

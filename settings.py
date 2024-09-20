@@ -1,7 +1,7 @@
 import os
 import secrets
 import json
-import atexit
+#import atexit
 from threading import Timer
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEvent, FileSystemEventHandler
@@ -17,8 +17,6 @@ class Settings(FileSystemEventHandler):
 		# timer to reload config on change
 		self._reloader = None
 		self._reload_delay = 0.2
-		# cleanup on close
-		atexit.register(self._observer.stop)
 
 	def init(self, filename: str, app = None):
 		if app is not None:
@@ -72,6 +70,7 @@ class Settings(FileSystemEventHandler):
 			if self._reloader.is_alive():
 				return
 		self._reloader = Timer(self._reload_delay, self.load)
+		self._reloader.daemon = True
 		self._reloader.start()
 
 settings = Settings()

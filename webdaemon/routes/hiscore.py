@@ -37,6 +37,7 @@ def hiscore(when:str):
    max_counts = func.max(Settleplate.Counts).label('max_counts')
    # create subquery for 10 highest counts
    subquery = db.session.query(barcode_cast, max_counts).group_by(barcode_cast)
+   subquery = subquery.filter(Settleplate.Counts >= 1)
    if date_from is not None and date_to is not None:
       subquery = subquery.filter(
          Settleplate.ScanDate >= datetime(date_from.year, date_from.month, date_from.day),
