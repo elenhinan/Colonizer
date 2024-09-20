@@ -44,28 +44,24 @@ def hiscore(when:str):
          Settleplate.ScanDate <= datetime(date_to.year, date_to.month, date_to.day, 23, 59, 59)
       )
    subquery = subquery.order_by(max_counts.desc()).limit(10).subquery()
-   
+
    # use subquery to look up settleplates at registration date, sorted by number of counts
-   query = db.session.query(Settleplate.ID, Settleplate.ScanDate, Settleplate.Username, Settleplate.Location, Settleplate.Barcode, subquery.c.max_counts)
-   query = query.join(subquery, and_(barcode_cast == subquery.c.Barcode, Settleplate.Counts == subquery.c.max_counts)).order_by(subquery.c.max_counts.desc())
+   query = db.session.query(Settleplate.ScanDate, Settleplate.Username, Settleplate.Location, Settleplate.Barcode, subquery.c.max_counts)
+   query = query.join(subquery, and_(barcode_cast == subquery.c.Barcode, Settleplate.Counts == -1)).order_by(subquery.c.max_counts.desc())
 
    results = query.all()
    hiscore_table = []
    for r in results:
       # place results into dict
-      sp = {
-         'ID': r.ID,
-         'Location': r.Location,
-         'Counts': r.max_counts,
-      }
-      # try to get the registering user and date
-      try:
-         q = db.session.query(Settleplate.Username, Settleplate.ScanDate).filter(Settleplate.Barcode.like(r.Barcode), Settleplate.Counts == -1).one()
-         sp['Username'] = q.Username
-         sp['ScanDate'] = q.ScanDate.strftime("%Y%m%d")
-      except:
-         sp['Username'] = '<unknown>'
-         sp['ScanDate'] = '<unkown>'
-      hiscore_table.append(sp)
+      row = {}
+      row['Username'] = r.Username
+      row['ScanDate'] = r.ScanDate.strftime("%Y%m%d")
+      row['Location'] = str(r.Location)
+      row['Counts'] = str(r.max_counts)
 
-   return render_template('hiscore.html', settleplates=hiscore_table, period=period)
+      # get the id for the plate with max counts
+      q = db.session.query(Settleplate.ID).filter(Settleplate.Barcode.like(r.Barcode), Settleplate.Counts == r.max_counts).order_by(Settleplate.ScanDate.desc()).first()
+      row['ID'] = q.ID
+      hiscore_table.append(row)
+
+   return render_template('hiscore.html', hiscore_table=hiscore_table, period=period)

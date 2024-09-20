@@ -22,8 +22,8 @@
 <div class="hiscore-period">
 {{ period }}
 </div>
-{% for sp in settleplates %}
-<p><a href="/settleplate/{{ sp.ID }}">{{sp.Username.ljust(16,'.')}}{{sp.ScanDate.ljust(16,'.')}}{{sp.Location.ljust(18,'.')}}{{(sp.Counts|string).rjust(5,'.')}}</a></p>
+{% for row in hiscore_table %}
+<p><a href="/settleplate/{{ row.ID }}">{{row.Username.ljust(16,'.')}}{{row.ScanDate.ljust(16,'.')}}{{row.Location.ljust(18,'.')}}{{(row.Counts|string).rjust(5,'.')}}</a></p>
 {% endfor %}
 <br>
 </div>
