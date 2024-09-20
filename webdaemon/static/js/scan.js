@@ -130,7 +130,7 @@ function plate_info() {
 function table_append(ID, dT, Counts) {
    $("#table_timepoints").append(`
       <tr>
-         <td><a href="settleplate?id=${ID}" target="_blank">${ID}</a></td>
+         <td><a href="${ID}" target="_blank">${ID}</a></td>
          <td>${dT}</td>
          <td>${Counts}</td>
       </tr>
