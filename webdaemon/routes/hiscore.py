@@ -46,8 +46,26 @@ def hiscore(when:str):
    subquery = subquery.order_by(max_counts.desc()).limit(10).subquery()
    
    # use subquery to look up settleplates at registration date, sorted by number of counts
-   query = db.session.query(Settleplate.ID, Settleplate.ScanDate, Settleplate.Username, Settleplate.Location, subquery.c.max_counts)
+   query = db.session.query(Settleplate.ID, Settleplate.ScanDate, Settleplate.Username, Settleplate.Location, Settleplate.Barcode, subquery.c.max_counts)
    query = query.join(subquery, and_(barcode_cast == subquery.c.Barcode, Settleplate.Counts == subquery.c.max_counts)).order_by(subquery.c.max_counts.desc())
 
    results = query.all()
-   return render_template('hiscore.html', settleplates=results, period=period)
+   hiscore_table = []
+   for r in results:
+      # place results into dict
+      sp = {
+         'ID': r.ID,
+         'Location': r.Location,
+         'Counts': r.max_counts,
+      }
+      # try to get the registering user and date
+      try:
+         q = db.session.query(Settleplate.Username, Settleplate.ScanDate).filter(Settleplate.Barcode.like(r.Barcode), Settleplate.Counts == -1).one()
+         sp['Username'] = q.Username
+         sp['ScanDate'] = q.ScanDate.strftime("%Y%m%d")
+      except:
+         sp['Username'] = '<unknown>'
+         sp['ScanDate'] = '<unkown>'
+      hiscore_table.append(sp)
+
+   return render_template('hiscore.html', settleplates=hiscore_table, period=period)
