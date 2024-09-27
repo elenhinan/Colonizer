@@ -25,17 +25,15 @@ def live():
 
 	if success:
 		# process image
-		if capture_settings['rotation']:
-			image = rotate_image(image, capture_settings['rotation'])
-		if capture_settings['mask']:
-			image = mask_image(image)
-		if capture_settings['autocrop'] == 'ring':
-			image = autocrop_ring(image)
-		elif capture_settings['autocrop'] == 'rect':
-			image = autocrop_rect(image)
-		elif capture_settings['drawmask']:
-			image = draw_mask(image)
-
+		image = rotate_image(image, capture_settings)
+		if capture_settings['crop_mask']:
+			image = mask_image(image, capture_settings)
+		if capture_settings['crop_auto'] == 'ring':
+			image = autocrop_ring(image, capture_settings)
+		elif capture_settings['crop_auto'] == 'rect':
+			image = autocrop_rect(image, capture_settings)
+		if capture_settings['histogram']:
+			image = draw_histogram(image)
 
 		#session['image'] = image
 		session['image_jpeg'] = to_jpg(image)

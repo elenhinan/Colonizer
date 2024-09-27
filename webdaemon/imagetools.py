@@ -1,26 +1,25 @@
 import cv2
 import numpy as np
-from settings import settings
 
-def get_circle(image):
+def get_circle(image, settings):
    h,w, *_ = image.shape
-   c_x = settings["autocrop"]["settleplate"]["c_x"]
-   c_y = settings["autocrop"]["settleplate"]["c_y"]
-   c_r = settings["autocrop"]["settleplate"]["c_r"]
+   c_x = settings["crop_mask_cx"]
+   c_y = settings["crop_mask_cy"]
+   c_r = settings["crop_mask_cr"]
    circle_x = int(w*c_x)
    circle_y = int(h*c_y)
    circle_r = int(h*c_r)
    return circle_x, circle_y, circle_r     
 
-def gen_mask(image):
+def gen_mask(image, settings):
    h,w, *_ = image.shape
-   circle_x, circle_y, circle_r = get_circle(image)
+   circle_x, circle_y, circle_r = get_circle(image, settings)
    mask = np.zeros([h,w], dtype=np.uint8)
    cv2.circle(mask, (circle_x, circle_y), circle_r, 1, -1)
    return mask
 
-def draw_mask(image):
-   circle_x, circle_y, circle_r = get_circle(image)         
+def draw_mask(image, settings):
+   circle_x, circle_y, circle_r = get_circle(image, settings)
    cv2.circle(image, (circle_x, circle_y), circle_r, (0,255,0), 5)
    return image
 
@@ -62,7 +61,12 @@ def to_png(image):
    ret, image_encoded = cv2.imencode('.png', image, params)
    return image_encoded.tobytes()
 
-def find_rect(img_org):
+def mask_image(img_org, settings):
+   mask = gen_mask(img_org, settings)
+   img_masked = img_org * mask[...,None]
+   return img_masked
+
+def autocrop_rect(img_org, settings):
    # reduce image size for speed
    factor = 8
 
@@ -74,38 +78,25 @@ def find_rect(img_org):
    mask = gen_mask(img_prep)
 
    # detect edges
-   t1 = settings["autocrop"]["plate"]["canny_t1"]
-   t2 = settings["autocrop"]["plate"]["canny_t2"]
+   t1 = settings["crop_canny_t1"]
+   t2 = settings["crop_canny_t2"]
    img_canny = cv2.Canny(img_prep,t1,t2)
    img_canny_masked = img_canny * mask
    edges = np.nonzero(img_canny_masked)
 
    # if too few edges found, return None
    if len(edges[0]) < 100:
-      return False
+      return img_org
    
    # crop onto found edges
    (cx,cy),(sx,sy),r = cv2.minAreaRect(np.transpose(edges)) # center, size and rotation
    rect = ((cx*factor,cy*factor),(sx*factor,sy*factor),r) # scale center and size
-   return rect
+   
+   img = crop_rect(img_org, rect)
+   img = auto_landscape(img)
+   return img
 
-def mask_image(img_org):
-   mask = gen_mask(img_org)
-   img_masked = img_org * mask[...,None]
-   return img_masked
-
-def autocrop_rect(img_org):
-   rect = find_rect(img_org)
-   if rect == False:
-      return img_org
-   else:
-      img = crop_rect(img_org, rect)
-      img = auto_landscape(img)
-      if settings["autocrop"]["plate"]["autolevel"]:
-         img = auto_level(img)
-      return img
-
-def autocrop_ring(img_org, color=(0,0,0)):
+def autocrop_ring(img_org, settings):
    # reduce image size for speed
    factor = 8
 
@@ -147,7 +138,7 @@ def autocrop_ring(img_org, color=(0,0,0)):
    
    # set pizels outside circle to color
    mask = np.zeros_like(img_org)
-   cv2.circle(mask, (mask_y, mask_x), mask_r, color, -1)
+   cv2.circle(mask, (mask_y, mask_x), mask_r, [0,0,0], -1)
    img_out = cv2.bitwise_and(img_org, mask)
    img_out = img_out[x1:x2, y1:y2]
 
@@ -167,8 +158,8 @@ def auto_landscape(img):
    else:
       return img
    
-def rotate_image(image, rotation):
-   rotation = rotation.lower()
+def rotate_image(image, settings):
+   rotation = settings['cam_rotation'].lower()
    if rotation == 'cw':
       dir = cv2.ROTATE_90_CLOCKWISE
    elif rotation == 'ccw':
@@ -178,3 +169,41 @@ def rotate_image(image, rotation):
    else:
       return image
    return cv2.rotate(image, dir)
+
+def draw_histogram(image: np.ndarray) -> np.ndarray:
+   # draw in upper right corner
+   width = int(image.shape[0] * 0.2)
+   height = int(width/2)
+   margin = int(width*0.05)
+
+   x2 = image.shape[0] - margin
+   x1 = x2 - width
+   y1 = margin
+   y2 = y1 + height
+   # copy part of image to draw on
+   hist_image = image[y1:y2,x1:x2]
+   white_rect = np.ones(hist_image.shape, dtype=np.uint8) * 255
+   hist_image = cv2.addWeighted(hist_image, 0.7, white_rect, 0.3, 1.0)
+   # calculate histogram
+   for channel, color in enumerate(([255,0,0],[0,255,0],[0,0,255])):
+      ch_img = np.zeros_like(hist_image)
+      # calc histogram
+      bins = np.linspace(0,1,256)
+      hist = cv2.calcHist([image], [channel], None, [256], [0,256])[:,0]
+      # normalize
+      hist = hist / np.max(hist[1:-1])
+      hist = np.clip(hist,0,1)
+      #
+      bins = np.concatenate(( [0], bins, [1]))
+      hist = np.concatenate(( [0], hist, [0]))
+      # to pixel coord
+      bins = (bins * (width-margin) + margin/2).round().astype(int)
+      hist = (hist * (height-margin) + margin/2).round().astype(int)
+      points = np.vstack((bins, height-hist)).T
+      # draw
+      #cv2.polylines(hist_image, [points], False, color)
+      cv2.fillPoly(ch_img, [points], color)
+      hist_image = cv2.addWeighted(hist_image, 1.0, ch_img, 0.5, 1.0)
+
+   image[y1:y2,x1:x2] = hist_image
+   return image

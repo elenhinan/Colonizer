@@ -64,7 +64,7 @@ def main():
             continue
 
          if cmd == 'status':
-            illumination.set_status(request['status'])
+            illumination.set_status(request['led_status'])
             illumination.run()
             response = {
                'msg' : 'ok'
@@ -82,12 +82,12 @@ def main():
 
             # check if settings changed
             if request != prev_request:
-               camera.set_exposure(request['exposure'])
-               camera.set_whitebalance(request['wb'][0],request['wb'][1])
-               camera.set_crop(request['crop'])
-               camera.set_resolution(request['resolution'])
-               camera.set_flip(request['hflip'], request['vflip'])
-               camera.set_rotation(request['rotation'])
+               camera.set_exposure(request['cam_exposure'])
+               camera.set_whitebalance(request['cam_wb'][0],request['cam_wb'][1])
+               camera.set_crop(request['cam_crop'])
+               camera.set_resolution(request['cam_resolution'])
+               camera.set_flip(request['cam_hflip'], request['cam_vflip'])
+               camera.set_rotation(request['cam_rotation'])
                prev_request = request
 
             try:
@@ -95,7 +95,7 @@ def main():
                illumination.set_top(request['led_top'])
                illumination.set_ring(request['led_ring'])
                illumination.run()
-               time.sleep(request['wait'])
+               time.sleep(request['led_wait'])
                image = camera.capture_array()
                illumination.clear()
                response = {

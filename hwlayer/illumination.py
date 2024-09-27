@@ -44,8 +44,14 @@ class Illumination():
 			self.strip[i] = color
 
 	def set_ring(self, color):
-		for i in self.segment['ring']:
-			self.strip[i] = color
+		# if color is array same length as number of leds, assign seperate color per led
+		if len(color) == len(self.segment['ring']):
+			for j,i in enumerate(self.segment['ring']):
+				self.strip[i] = color[j]
+		# else set all leds to same color
+		elif len(color) == 3:
+			for i in self.segment['ring']:
+				self.strip[i] = color
 
 	def run(self, duration:int = 0):
 		self.strip.show()

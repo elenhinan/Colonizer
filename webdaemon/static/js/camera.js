@@ -15,6 +15,14 @@ $(document).ready(function() {
    $("#mode").on("change", refresh_image);
    $("#save").on("click", save_image);
    $("#camera-img").on("load", on_load);
+   // zoom in on image on click
+   $("#camera-img").click(function () {
+      $("#imagemodal").modal('show');
+   });
+   // when new image loaded, update imagezoom
+   $("#camera-img").on('load', function() {
+      $("#imagezoom").attr("src", $("#camera-img").attr("src"));
+   })
 });
 
 function on_load() {
