@@ -52,7 +52,7 @@ def main():
    while True:
       if socket.poll(timeout):
          request = socket.recv_json()
-         request.setdefault('resolution', None)
+         request.setdefault('cam_resolution', None)
          cmd = request.pop('CMD')
 
          if cmd == 'ready':
