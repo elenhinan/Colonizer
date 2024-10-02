@@ -23,7 +23,6 @@ def draw_mask(image, settings):
    cv2.circle(image, (circle_x, circle_y), circle_r, (0,255,0), 5)
    return image
 
-
 def prep_img(image, factor=1.0):
    height, width, *_ = image.shape
    newsize = (int(width/factor),int(height/factor))
@@ -31,20 +30,29 @@ def prep_img(image, factor=1.0):
    blurred = cv2.GaussianBlur(resized, ksize=(9,9), sigmaX=0)
    return blurred
 
+def make_lower_left(box):
+    # sort coordinates to find lower left
+    lower_two = box[:, 1].argsort()[2:4] # find index of highest two y values
+    lower_left = box[lower_two, 0].argsort()[0] # find index of lowest x value within the two y-indices
+    index = lower_two[lower_left]
+
+    # shift box coordinates so lower left is first
+    box = np.roll(box,-index,axis=0)
+    return box
+
 def crop_rect(image, rect):
-   # get new and old coordinates
-   height, width, *_ = image.shape
-   new_height, new_width = np.float32(rect[1])
-   
-   # generate src and dst triangle
-   dst = np.float32([[new_width,0], [0,0], [0,new_height]])
-   box = cv2.boxPoints(rect)
-   src = np.flip(np.float32(box[0:3]),1)
-   
+   # get corners and rotate
+   box = np.intp(np.round(cv2.boxPoints(rect),0))
+   box = make_lower_left(box)
+   # get length of sides
+   l1 = np.linalg.norm(box[0]-box[1])
+   l2 = np.linalg.norm(box[2]-box[1])
+   # set src and dest triangles
+   src = np.float32(box[0:3])
+   dst = np.float32([[0,l1], [0,0], [l2,0]])
    # do transform
    m_crop = cv2.getAffineTransform(src, dst)
-   img_crop =  cv2.warpAffine(image, m_crop, (int(new_width), int(new_height)))
-
+   img_crop =  cv2.warpAffine(image, m_crop, (int(l2), int(l1)))
    return img_crop
 
 def to_jpg(image):
@@ -62,6 +70,8 @@ def to_png(image):
    return image_encoded.tobytes()
 
 def mask_image(img_org, settings):
+   if settings['crop_drawonly']:
+      return draw_mask(img_org, settings)
    mask = gen_mask(img_org, settings)
    img_masked = img_org * mask[...,None]
    return img_masked
@@ -70,30 +80,46 @@ def autocrop_rect(img_org, settings):
    # reduce image size for speed
    factor = 8
 
-   # use gray only
-   img_gray = cv2.cvtColor(img_org, cv2.COLOR_RGB2GRAY)
-
    # resize and blur
-   img_prep = prep_img(img_gray, factor)
-   mask = gen_mask(img_prep)
+   img_prep = prep_img(img_org, factor)
+   mask = gen_mask(img_prep, settings)
 
    # detect edges
    t1 = settings["crop_canny_t1"]
    t2 = settings["crop_canny_t2"]
    img_canny = cv2.Canny(img_prep,t1,t2)
    img_canny_masked = img_canny * mask
-   edges = np.nonzero(img_canny_masked)
+   contours, *_ = cv2.findContours(img_canny,cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
    # if too few edges found, return None
-   if len(edges[0]) < 100:
-      return img_org
-   
-   # crop onto found edges
-   (cx,cy),(sx,sy),r = cv2.minAreaRect(np.transpose(edges)) # center, size and rotation
+   if len(contours) < 1:
+      if settings['crop_drawonly']:
+         draw_mask(img_canny_masked, settings)
+         return img_canny_masked
+      else:
+         return img_org
+
+   # sort contours by increasing size, and choose largest contour
+   #contour = sorted(contours, key=cv2.contourArea)[-1]
+   contour = sorted(contours, key=lambda x: cv2.arcLength(x,True))[-1]
+   # use this to generate cropping rectangle
+   (cx,cy),(sx,sy),r = cv2.minAreaRect(contour) # center, size and rotation
    rect = ((cx*factor,cy*factor),(sx*factor,sy*factor),r) # scale center and size
-   
+
+   if settings['crop_drawonly']:
+      canny_rgb = cv2.cvtColor(img_canny_masked,cv2.COLOR_GRAY2RGB)
+      img = cv2.resize(canny_rgb, (img_org.shape[0],img_org.shape[1]), interpolation = cv2.INTER_NEAREST)
+      draw_mask(img, settings)
+      box = np.intp(np.round(cv2.boxPoints(rect),0))
+      box = make_lower_left(box)
+      thickness = int(round(img.shape[0]*0.002,0))
+      cv2.drawContours(img, [box],0,(255,0,255),thickness)
+      cv2.circle(img,(box[0][0],box[0,1]),thickness*3,(0,0,255),-1)
+      img = cv2.addWeighted(img_org, 0.5, img, 1.0, 1.0)
+      return img
+
    img = crop_rect(img_org, rect)
-   img = auto_landscape(img)
+
    return img
 
 def autocrop_ring(img_org, settings):
@@ -151,13 +177,6 @@ def auto_level(img):
    img_yuv[:,:,0] = clahe.apply(img_yuv[:,:,0])
    return cv2.cvtColor(img_yuv, cv2.COLOR_YUV2RGB)
 
-def auto_landscape(img):
-   # rotate to landscape if needed
-   if img.shape[0] > img.shape[1]:
-      return cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
-   else:
-      return img
-   
 def rotate_image(image, settings):
    rotation = settings['cam_rotation'].lower()
    if rotation == 'cw':
