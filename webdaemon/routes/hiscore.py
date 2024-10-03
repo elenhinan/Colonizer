@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, date
-from flask import Blueprint, render_template, g, abort, redirect, url_for
+from flask import Blueprint, render_template, g, abort, redirect, url_for, request
 from webdaemon.model import Settleplate
 from webdaemon.database import db
 from sqlalchemy import func, cast, and_
@@ -38,6 +38,8 @@ def hiscore(when:str):
    # create subquery for 10 highest counts
    subquery = db.session.query(barcode_cast, max_counts).group_by(barcode_cast)
    subquery = subquery.filter(Settleplate.Counts >= 1)
+   if "location" in request.args:
+      subquery = subquery.filter(Settleplate.Location.startswith(request.args['location']))
    if date_from is not None and date_to is not None:
       subquery = subquery.filter(
          Settleplate.ScanDate >= datetime(date_from.year, date_from.month, date_from.day),

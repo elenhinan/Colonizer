@@ -1,4 +1,5 @@
 import cv2
+import math
 import numpy as np
 
 def get_circle(image, settings):
@@ -31,19 +32,32 @@ def prep_img(image, factor=1.0):
    return blurred
 
 def make_lower_left(box):
-    # sort coordinates to find lower left
-    lower_two = box[:, 1].argsort()[2:4] # find index of highest two y values
-    lower_left = box[lower_two, 0].argsort()[0] # find index of lowest x value within the two y-indices
-    index = lower_two[lower_left]
+   """
+   lay_down ensure that the first corner is the lower left
+   : param box: box that describes the rectangle
+   """
+   # sort coordinates to find lower left
+   lower_two = box[:, 1].argsort()[2:4] # find index of highest two y values
+   lower_left = box[lower_two, 0].argsort()[0] # find index of lowest x value within the two y-indices
+   index = lower_two[lower_left]
 
-    # shift box coordinates so lower left is first
-    box = np.roll(box,-index,axis=0)
-    return box
+   # shift box coordinates so lower left is first
+   box = np.roll(box,-index,axis=0)
+   return box
 
-def crop_rect(image, rect):
-   # get corners and rotate
-   box = np.intp(np.round(cv2.boxPoints(rect),0))
+def lay_down(box):
+   """
+   lay_down moves first corner to ensure minimum rotation of rectangle
+   : param box: box that describes the rectangle
+   """
    box = make_lower_left(box)
+   v = box[0] - box[1]
+   t = math.atan2(v[0],v[1])/np.pi*180
+   if t > 45:
+      box = np.roll(box,-1,axis=0)
+   return box
+
+def crop_rect(image, box):
    # get length of sides
    l1 = np.linalg.norm(box[0]-box[1])
    l2 = np.linalg.norm(box[2]-box[1])
@@ -105,20 +119,20 @@ def autocrop_rect(img_org, settings):
    # use this to generate cropping rectangle
    (cx,cy),(sx,sy),r = cv2.minAreaRect(contour) # center, size and rotation
    rect = ((cx*factor,cy*factor),(sx*factor,sy*factor),r) # scale center and size
+   box = np.intp(np.round(cv2.boxPoints(rect),0))
+   box = lay_down(box)
 
    if settings['crop_drawonly']:
       canny_rgb = cv2.cvtColor(img_canny_masked,cv2.COLOR_GRAY2RGB)
       img = cv2.resize(canny_rgb, (img_org.shape[0],img_org.shape[1]), interpolation = cv2.INTER_NEAREST)
       draw_mask(img, settings)
-      box = np.intp(np.round(cv2.boxPoints(rect),0))
-      box = make_lower_left(box)
       thickness = int(round(img.shape[0]*0.002,0))
       cv2.drawContours(img, [box],0,(255,0,255),thickness)
       cv2.circle(img,(box[0][0],box[0,1]),thickness*3,(0,0,255),-1)
       img = cv2.addWeighted(img_org, 0.5, img, 1.0, 1.0)
       return img
 
-   img = crop_rect(img_org, rect)
+   img = crop_rect(img_org, box)
 
    return img
 

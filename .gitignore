@@ -7,6 +7,7 @@ install/etc/fstab
 instance
 log
 run
+venv
 *.ipynb
 *.sqlite
 webdaemon/static/fontawesome
@@ -19,3 +20,6 @@ webdaemon/static/css/bootstrap_themed.css
 secret.key
 config/production.json
 config/testing.json
+webdaemon/static/2021-08-17_-_8_Bit_Nostalgia_-_www.FesliyanStudios.com.mp3
+webdaemon/static/fonts/joystix_monospace.otf
+
