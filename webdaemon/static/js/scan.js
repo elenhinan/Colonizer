@@ -54,15 +54,24 @@ $(document).ready(function() {
             console.log(data);
             if (data.committed == true) {
                $("#commit_fail").slideUp();
-               $("#commit_ok").html(`<strong>Success!</strong> Image commitd to DB`)
+               $("#commit_ok").html(`<strong>Success!</strong> Image committed to DB`)
                $("#commit_ok").slideDown();
                table_append(data.ID, data.dT, data.Counts);
                setTimeout(init_page, 3000);
             } else {
                $("#commit_ok").slideUp();
+               // Show specific error if provided by backend, otherwise fall back to generic message
+               $("#commit_fail").html(`<strong>Error!</strong> ${data.error || 'Failed to commit image to DB'}`);
                $("#commit_fail").slideDown();
+               // restore the UI to a usable state so user can recapture or rescan
+               $("#refresh").prop("disabled", false);  // allow image recapture
+               $("#Counts").prop("readonly", false); // allow counts to be changed again
+               $("#Counts").val("") // reset counts
+               $("#barcode").prop("readonly", false);  // allow serial rescan
+               $("#barcode").focus();
+               $("#commit").prop("disabled", false); // allow commit/save retry
+               slideup_all(); //moved here so it does not fire for both success and failure (when succeeded, init_page calls it anyways, so no need to call twice)
             }
-            slideup_all();
          },
          dataType: "json"
       });
@@ -87,8 +96,11 @@ function decode_text(text_input) {
       data: JSON.stringify(text_input),
       success: function (data) {
          console.log(data);
-         if ("serial" in data) {
-            $("#barcode").val(data.serial)
+         // settleplate barcode is saved as serial when workflow starts with a batch scan
+         // and as plate_barcode when workflow starts with plate serial scan
+         if ("serial" in data || "plate_barcode" in data) {
+            const full_barcode = data.serial ?? data.plate_barcode;
+            $("#barcode").val(full_barcode)
             $("#image").attr("src", "/static/settleplate.svg") // reset image on new serial
             plate_info();
          }
