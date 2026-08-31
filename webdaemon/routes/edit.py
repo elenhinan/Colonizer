@@ -30,15 +30,22 @@ def edit_settleplate(settleplate_id):
 			try:
 				db.session.add(sp)
 				db.session.commit()
-			except:
-				current_app.logger.error(f"Failed to update : {sp.ID}")
+			except Exception as e:
+				db.session.rollback()
+				current_app.logger.error(f"Failed to update : {sp.ID} error: {str(e)}")
+				raise
 			else:
 				current_app.logger.info(f"User {g.username} edited settleplate : {sp.ID}")
 				updated = True
 	elif action == "delete" and not readonly:
 		current_app.logger.info(f"User {g.username} deleting settleplate : {sp.ID}")
-		db.session.delete(sp)
-		db.session.commit()
+		try:
+			db.session.delete(sp)
+			db.session.commit()
+		except Exception as e:
+				db.session.rollback()
+				current_app.logger.error(f"Failed to delete : {sp.ID} error: {str(e)}")
+				raise
 		return redirect(url_for('list.settleplates'))
 
 	return render_template('settleplate.html', settleplate=sp, form=form, readonly=readonly, updated=updated, hive_settings=settings['hive'])

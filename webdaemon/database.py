@@ -10,8 +10,7 @@ def init_database(app):
 	sql_info = settings['db']
 	#if (sql_info['driver'] == "SQLITE"):
 	#   app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///{filepath}'.format(**sql_info)
-	if (sql_info['driver'] in ["ODBC", "FreeTDS"]):
-		app.config['SQLALCHEMY_DATABASE_URI'] = 'mssql+pyodbc://{user}:{password}@{host}:{port}/{dbname}?driver={driver}'.format(**sql_info)
+	app.config['SQLALCHEMY_DATABASE_URI'] = 'mssql+pyodbc://{user}:{password}@{host}:{port}/{dbname}?driver={driver}'.format(**sql_info)
 	try:
 		db.init_app(app)
 	except:

@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	// --- 1. State Variables ---
 	const overlay = document.getElementById('overlay');
    const image = document.getElementById('image');
+   const clamp = (val, min=0, max=1) => Math.max(min, Math.min(max, val)); // function for clamping values
 	let isDrawing = false;
 	let startX = 0;
 	let startY = 0;
@@ -102,8 +103,8 @@ document.addEventListener('DOMContentLoaded', () => {
 	// --- 4. Helper Function ---
 	function getNormalizedCoordinates(e) {
 		const bounds = image.getBoundingClientRect();
-		const x = Math.max(0, Math.min(1, (e.offsetX) / bounds.width));
-		const y = Math.max(0, Math.min(1, (e.offsetY) / bounds.height));
+		const x = clamp(e.offsetX / bounds.width);
+		const y = clamp(e.offsetY / bounds.height);
 		return { x, y };
 	}
 });

@@ -38,6 +38,7 @@ def scan():
 				db.session.add(sp)
 				db.session.commit()
 			except Exception as e:
+				db.session.rollback()
 				current_app.logger.error('Failed to write to DB: %s'%str(e))
 				return jsonify({'committed':False})
 			else:

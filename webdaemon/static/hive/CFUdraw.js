@@ -1,4 +1,4 @@
-var cfus;
+var cfus = {};
 var results;
 var model;
 var show_low = true;

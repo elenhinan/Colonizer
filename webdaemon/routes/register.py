@@ -25,9 +25,15 @@ def register():
 		if 'expire' in data:
 			new_sp.Expires = data['expire']
 		new_sp.Counts = -1
-		db.session.add(new_sp)
-		db.session.commit()
-		current_app.logger.info(f"User {g.username} registered settleplate : {new_sp.ID}")
+		try:
+			db.session.add(new_sp)
+			db.session.commit()
+		except Exception as e:
+			db.session.rollback()
+			current_app.logger.error('Failed to register to DB: %s'%str(e))
+			raise
+		else:
+			current_app.logger.info(f"User {g.username} registered settleplate : {new_sp.ID}")
 
 	return jsonify({'commited':True})
 

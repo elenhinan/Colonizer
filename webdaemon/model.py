@@ -20,7 +20,7 @@ class Settleplate(db.Model):
 	Location = db.Column(db.Unicode(128))
 	Batch = db.Column(db.String(128))
 	Image = deferred(db.Column(db.LargeBinary)) # deferred so only loaded when accessed, not when queried
-	Colonies = db.Column(db.String(8192))
+	Colonies = db.Column(db.Text())
 	Exported = db.Column(db.Boolean, default=False)
 
 	def __init__(self, **kwargs):
