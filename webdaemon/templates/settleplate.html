@@ -15,6 +15,7 @@
 		$(document).ready(function() {
 			// zoom in on image on click
 			$("#zoom").click(fullscreen);
+			$("#overlay").dblclick(fullscreen);
 			$("#SPform").on("submit", save_cfu);
 			$('[data-toggle="tooltip"]').tooltip();
 			load_cfu();
@@ -22,7 +23,7 @@
 		});
 		function fullscreen() {
     		const wrapper = document.getElementById('fullscreen-wrapper');
-    		const icon = document.querySelector('#zoom i');
+    		const icon = document.querySelector('#zoom svg');
 
     		if (!document.fullscreenElement) {
         		// Enter fullscreen on the wrapper

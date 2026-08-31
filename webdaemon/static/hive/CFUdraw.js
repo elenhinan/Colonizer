@@ -91,6 +91,14 @@ function cfu_add(cfu) {
    cfus[cfu.id] = cfu;
 }
 
+function cfu_newid() {
+   let new_id = 0;
+   for (const key in cfus) {
+      new_id = Math.max(new_id, cfus[key].id+1)
+   }
+   return new_id;
+}
+
 function cfu_update_counts() {
    let n_cfus = $('.CFU-positive').length
    $("#Counts").val(n_cfus);
