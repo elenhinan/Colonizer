@@ -11,7 +11,7 @@ def scan():
 	if request.method == 'GET':
 		sp = Settleplate()
 		form = SettleplateForm(obj=sp)
-		return render_template('scan.html', settleplate=sp, form=form, autocount=settings['general']['autocount'])
+		return render_template('scan.html', settleplate=sp, form=form, autocount=settings['general']['autocount'], hive_settings=settings['hive'])
 
 	# else if POST
 	data = request.get_json()
